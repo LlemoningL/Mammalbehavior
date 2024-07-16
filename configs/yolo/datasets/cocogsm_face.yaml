@@ -1,0 +1,19 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# COCO 2017 dataset http://cocodataset.org by Microsoft
+# Example usage: yolo train data=coco.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco  ← downloads here (20.1 GB)
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: /home/gst/14tdisk/14-4tdisk/1a数据总库20221022/1/2/打标川金丝猴_AutoDataset  # dataset root dir
+train: images/train  # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
+test: images/test
+verbose: False
+# Classes
+names:
+  0: gsm
+

@@ -1,0 +1,41 @@
+# Framework configs
+
+MODEL:
+  # path to weight of YOLOv8 detect model
+  FACE:
+    weight: path/to/face/detect/weight.pt
+    trt_engine: path/to/face/detect/weight.engine
+
+  # path to weight of YOLOv8 track model
+  BODY:
+    weight: path/to/body/detect/weight.pt
+    trt_engine: path/to/body/detect/weight_trt.engine
+
+  # path to config and weight of mmpose model
+  POSE:
+    cfg: path/to/pose/estimate/td-hm_hrnet-w32_8xb64-210e_ap10k-256x256.py
+    weight: path/to/pose/estimate/weight.pth
+    trt_engine: path/to/pose/estimate/weight_trt.engine
+    deploy_cfg: path/to/pose/estimate/pose-detection_tensorrt_static-256x256.py
+
+  # path to config and weight of mmaction model
+  BEHAVIOR:
+    cfg:  path/to/behavior/slowonly_r50_8xb16-u48-240e_ntu60-xsub-keypoint.py
+    weight:  path/to/behavior/weight.pth
+    trt_engine: # todo convert to TensorRT engine
+
+  # path to config and weight of mmpretrain model
+  FACEID:
+    cfg: path/to/faceid/resnet50-arcface_8xb32_inshop_custom.py
+    weight: path/to/faceid/weight.pth
+    prototype: path/to/faceid/prototype  #  usually is a directory
+    prototype_cache: path/to/faceid/prototype_cache.pth  # a generated prototype *.pth file
+    trt_engine: path/to/faceid/weight_trt.engine
+
+#path to save the output
+OUTPUT:
+  path: 'VideoOutput'
+
+# type of target
+DATA:
+  label: Perissodactyla  # "Choose one in ["Primates", "Artiodactyla", "Carnivora", "Perissodactyla"]

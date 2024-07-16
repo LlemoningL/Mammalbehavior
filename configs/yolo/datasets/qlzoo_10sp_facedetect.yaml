@@ -1,0 +1,30 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# COCO8 dataset (first 8 images from COCO train2017) by Ultralytics
+# Example usage: yolo train data=coco8.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco8  ← downloads here (1 MB)
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: /home/gst/lj/14tdisk/14-4tdisk/1a数据总库20221022/识别数据汇总/2023.10文章数据补充已处理数据/FINIAL_DATA/FACE_DET/face_det_bigdata_new_Autodataset  # dataset root dir
+train: images/train  # train images (relative to 'path') 4 images
+val: images/val  # val images (relative to 'path') 4 images
+test: images/test # test images (optional)
+verbose: False
+# Classes
+names:
+  0: Black Bear
+  1: Ring-tailed Lemur
+  2: Golden Monkey
+  3: Tiger
+  4: Takin
+  5: Lechwe
+  6: Zebra
+  7: Gnu
+  8: Brown Bear
+  9: Hamadryas Baboon
+
+
+

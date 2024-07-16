@@ -1,0 +1,23 @@
+# Framework configs
+
+TRAIN:
+  # path to weight of YOLOv8 detect model
+  FACE:
+#    cfg: ../configs/yolo/datasets/qlzoo_10sp_facedetect.yaml
+    cfg: ../configs/yolo/datasets/qlzoo_10sp_facedetect.yaml
+
+  # path to weight of YOLOv8 track model
+  BODY:
+    cfg: ../configs/yolo/datasets/qlzoo_10sp_bodydetect.yaml
+
+  # path to config and weight of mmpose model
+  POSE:
+    cfg: ../configs/pose/animal_2d_keypoint/topdown_heatmap/ap10k/fourleg_td-hm_hrnet-w32_8xb64-210e_ap10k-256x256.py
+
+  # path to config and weight of mmaction model
+  BEHAVIOR:
+    cfg: ../configs/behavior/skeleton/posec3d/4leg_slowonly_r50_8xb16-u48-240e_ntu60-xsub-keypoint.py
+
+  # path to config and weight of mmpretrain model
+  FACEID:
+    cfg: ../configs/faceid/arcface/resnet50-arcface_8xb32_inshop_custom.py

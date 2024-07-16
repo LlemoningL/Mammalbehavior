@@ -1,0 +1,6 @@
+{
+  "Primates": {"categories": ["Grooming", "Feeding", "Resting", "Walking"]},
+  "Artiodactyla": {"categories": ["Standing", "Feeding", "Resting", "Walking"]},
+  "Carnivora": {"categories": ["Resting", "Standing", "Walking"]},
+  "Perissodactyla": {"categories": ["Feeding", "Standing", "Walking"]}
+}
