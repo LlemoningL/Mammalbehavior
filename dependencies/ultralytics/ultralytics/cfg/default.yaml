@@ -68,6 +68,9 @@ agnostic_nms: False  # (bool) class-agnostic NMS
 classes:  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
 retina_masks: False  # (bool) use high-resolution segmentation masks
 boxes: True  # (bool) Show boxes in segmentation predictions
+encoder: null
+with_reid: False
+frame_rate: 30
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # (str) format to export to, choices at https://docs.ultralytics.com/modes/export/#export-formats
