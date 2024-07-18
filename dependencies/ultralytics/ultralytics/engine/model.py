@@ -253,7 +253,10 @@ class Model(nn.Module):
         """
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.trackers import register_tracker
-            register_tracker(self, persist)
+            encoder = kwargs.get('encoder')
+            with_reid = kwargs.get('with_reid')
+            frame_rate = kwargs.get('frame_rate') or 30
+            register_tracker(self, persist, encoder, with_reid, frame_rate)
         kwargs['conf'] = kwargs.get('conf') or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)

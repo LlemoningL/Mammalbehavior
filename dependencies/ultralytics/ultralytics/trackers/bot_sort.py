@@ -11,6 +11,7 @@ from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
 
 
+
 class BOTrack(STrack):
     """
     An extended version of the STrack class for YOLOv8, adding object tracking features.
@@ -147,15 +148,18 @@ class BOTSORT(BYTETracker):
         The class is designed to work with the YOLOv8 object detection model and supports ReID only if enabled via args.
     """
 
-    def __init__(self, args, frame_rate=30):
+    def __init__(self, args, frame_rate=30, encoder=None, with_reid=False):
         """Initialize YOLOv8 object with ReID module and GMC algorithm."""
         super().__init__(args, frame_rate)
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
+        self.with_reid = with_reid
 
-        if args.with_reid:
-            # Haven't supported BoT-SORT(reid) yet
+        if self.with_reid and encoder is not None:
+            # BoT-SORT(reid)
+            self.encoder = encoder
+        else:
             self.encoder = None
         self.gmc = GMC(method=args.gmc_method)
 
@@ -167,7 +171,7 @@ class BOTSORT(BYTETracker):
         """Initialize track with detections, scores, and classes."""
         if len(dets) == 0:
             return []
-        if self.args.with_reid and self.encoder is not None:
+        if self.with_reid and self.encoder is not None:
             features_keep = self.encoder.inference(img, dets)
             return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
         else:
@@ -182,7 +186,7 @@ class BOTSORT(BYTETracker):
         # if not self.args.mot20:
         dists = matching.fuse_score(dists, detections)
 
-        if self.args.with_reid and self.encoder is not None:
+        if self.with_reid and self.encoder is not None:
             emb_dists = matching.embedding_distance(tracks, detections) / 2.0
             emb_dists[emb_dists > self.appearance_thresh] = 1.0
             emb_dists[dists_mask] = 1.0

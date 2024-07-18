@@ -14,7 +14,7 @@ from .byte_tracker import BYTETracker
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
-def on_predict_start(predictor, persist=False):
+def on_predict_start(predictor, persist=False, encoder=None, with_reid=False, frame_rate=30):
     """
     Initialize trackers for object tracking during prediction.
 
@@ -33,7 +33,7 @@ def on_predict_start(predictor, persist=False):
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=frame_rate, encoder=encoder, with_reid=with_reid)
         trackers.append(tracker)
     predictor.trackers = trackers
 
@@ -58,7 +58,7 @@ def on_predict_postprocess_end(predictor, persist=False):
         predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
 
 
-def register_tracker(model, persist):
+def register_tracker(model, persist, encoder=None, with_reid=False, frame_rate=30):
     """
     Register tracking callbacks to the model for object tracking during prediction.
 
@@ -66,5 +66,6 @@ def register_tracker(model, persist):
         model (object): The model object to register tracking callbacks for.
         persist (bool): Whether to persist the trackers if they already exist.
     """
-    model.add_callback('on_predict_start', partial(on_predict_start, persist=persist))
+    model.add_callback('on_predict_start', partial(on_predict_start, persist=persist,
+                                                   encoder=encoder, with_reid=with_reid, frame_rate=frame_rate))
     model.add_callback('on_predict_postprocess_end', partial(on_predict_postprocess_end, persist=persist))
