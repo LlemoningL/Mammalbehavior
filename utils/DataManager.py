@@ -13,7 +13,7 @@ class DataManager:
         self.Frameinfo = self.make_data_dict()
         self.label_text = {}
         self.frame_coordinates = {}
-        self.csv_path = Path(output_path) / 'frame_info.csv'
+        self.csv_path = Path(output_path) / f'{output_path.stem}_info.csv'
         self.is_first_save = True
 
     def update_pose_result(self, pose_result):
@@ -67,58 +67,10 @@ class DataManager:
                                   encoding='utf_8_sig')
             self.Frameinfo = self.make_data_dict()
         self.is_first_save = False
+
+
     def update_label_text(self, text_dict, face_name, track_id, behavior_cls=None, behavior_prob=None):
 
-        # if behavior_cls != '' and behavior_prob != '':
-        #     self.label_text = dict()
-        #     self.label_text[track_id] = (behavior_cls.title(), behavior_prob)
-        # if self.label_text:
-        #     if track_id in self.label_text:
-        #         label_text = f'{face_name} {track_id} ' \
-        #                      f'{self.label_text[track_id][0]} ' \
-        #                      f'{self.label_text[track_id][1]}'
-        #     else:
-        #         label_text = f'{face_name} {track_id} '
-        # else:
-        #     label_text = f'{face_name} {track_id}'
-        #
-        # return label_text
-
-
-    # def split_pose_result(self): # np.ndarray
-    #     num_person = max([len(x['keypoints']) for x in self.pose_results])
-    #     pose_results_splited = dict()
-    #     for idx, d in enumerate(self.pose_results):
-    #         if len(d['keypoints']) < num_person:
-    #             frame_person = len(d['keypoints'])
-    #         else:
-    #             frame_person = num_person
-    #         for i in range(frame_person):
-    #             temp_dict = dict(
-    #                 bboxes=np.zeros((1, 4), dtype=np.float16),
-    #                 keypoints_visible=np.zeros((1, 17), dtype=np.float16),
-    #                 keypoints=np.zeros((1, 17, 2), dtype=np.float16),
-    #                 bbox_scores=np.zeros((1), dtype=np.float16),
-    #                 keypoint_scores=np.zeros((1, 17), dtype=np.float16))
-    #             temp_dict['bboxes'][0] = d['bboxes'][i]
-    #             temp_dict['keypoints_visible'][0] = d['keypoints_visible'][i]
-    #             temp_dict['keypoints'][0] = d['keypoints'][i]
-    #             temp_dict['bbox_scores'] = d['bbox_scores'][i]
-    #             temp_dict['keypoint_scores'][0] = d['keypoint_scores'][i]
-    #             track_id = int(d['track_bboxes'][:, 4][i])
-    #             if track_id not in pose_results_splited:
-    #                 pose_results_splited[track_id] = list()
-    #             pose_results_splited[track_id].extend([temp_dict])
-    #
-    #     self.pose_results = list()
-    #     return pose_results_splited
-
-        # 只在需要时更新 self.label_text
-        # if track_id not in text_dict:
-        #     text_dict[track_id] = {'face_name': face_name, 'track_id': track_id}
-        # else:
-        #     text_dict[track_id].update({id: {'face_name': face_name, 'track_id': track_id}})
-        # text = f'{text_dict[track_id]["face_name"]} {text_dict[track_id]["track_id"]} '
         if behavior_cls and behavior_prob:
             text_dict[track_id].update({'cls': behavior_cls,
                                         'prob': behavior_prob})
@@ -126,28 +78,6 @@ class DataManager:
             text_dict[track_id]['text_extend'] = text_extend
         else:
             text_dict[track_id]['text_extend'] = None
-
-        # if 'cls' in text_dict[id] and 'prob' in text_dict[id]:
-        #
-        #     text += f'{text_dict[id]["cls"]} {text_dict[id]["prob"]}'
-
-
-
-
-
-
-        # if behavior_cls and behavior_prob:
-        #     self.label_text = self.label_text or {}
-        #     self.label_text[track_id] = (behavior_cls.title(), behavior_prob)
-        #
-        # # 构建基本标签文本
-        # text = {track_id: {}}
-        #
-        # # 如果有行为信息，添加到标签文本
-        # if track_id in self.label_text:
-        #     cls, prob = self.label_text[track_id]
-        #     text[track_id].update({'cls': cls,
-        #                            'prob': prob})
 
         return text_dict
     def split_pose_result(self):
