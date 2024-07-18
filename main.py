@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from utils.VideoProcessor import VideoProcessor
 from yacs.config import CfgNode as CN
 
-
 def default():
     _C = CN()
     _C.PRE = False
@@ -15,6 +14,9 @@ def default():
     _C.MODEL.BODY = CN()
     _C.MODEL.BODY.weight = ''
     _C.MODEL.BODY.trt_engine = ''
+    _C.MODEL.BODY.reid_encoder = ''
+    _C.MODEL.BODY.r_e_trt_engine = ''
+    _C.MODEL.BODY.with_reid = False
 
     _C.MODEL.POSE = CN()
     _C.MODEL.POSE.cfg = ''
@@ -52,7 +54,14 @@ def parser_args():
     parser.add_argument('cfg', help='Path to config file'),
     parser.add_argument('video', help='Path to the video file')
     parser.add_argument('target_type', help='Type of target')
-    parser.add_argument('--interval', default=3, type=int, help='Interval to recognize, in seconds')
+    parser.add_argument('--trt', default=False,
+                        help='Whether to use TRT engine')
+    parser.add_argument('--show', default=False,
+                        help='Whether to show inferenced frame')
+    parser.add_argument('--save_vid', default=False,
+                        help='Whether to save inferenced video')
+    parser.add_argument('--show_fps', default=False,
+                        help='Whether to show inference fps')
     parser.add_argument('--behavior_label',
                         default='./tools/behavior_label.json',
                         type=str,
@@ -67,11 +76,10 @@ def parser_args():
 
 def main():
     cfgs, args = parser_args()
-    VP = VideoProcessor(cfgs, args, trt=True)
-    # VP = VideoProcessor(cfgs, args, trt=False)
-    VP.process_video(show=False, save_vid=False, show_fps=True)
-    # VP.process_video(show=True, save_vid=True, show_fps=True)
-    VP.cleanup()
+    ViP = VideoProcessor(cfgs, args, trt=True)
+    # ViP = VideoProcessor(cfgs, args, trt=False)
+    # ViP.process_video(show=False, save_vid=False, show_fps=True)
+    ViP.process_video(show=True, save_vid=False, show_fps=True)
 
 
 if __name__ == '__main__':

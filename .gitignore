@@ -20,3 +20,5 @@ dependencies/mmdeploy/delet2.py
 dependencies/mmdeploy/td-hm_hrnet-w32_8xb64-210e_coco-256x192.py
 dependencies/mmdeploy/td-hm_hrnet-w32_8xb64-210e_coco-256x192-81c58e40_20220909.pth
 /.idea/
+/animal_behavior_runs_result/
+/dependencies/mmdeploy/faceid_trt.engine

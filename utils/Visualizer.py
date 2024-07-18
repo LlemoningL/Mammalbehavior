@@ -2,6 +2,7 @@ import warnings
 import mmengine
 from typing import Optional
 from mmengine.config import Config
+# from ..dependencies.mmaction2.mmaction.registry import VISUALIZERS
 from mmaction.registry import VISUALIZERS
 from mmpose.datasets.datasets.utils import parse_pose_metainfo
 from utils.util import vis_box, visualize_frame, show_img
@@ -25,7 +26,7 @@ class Visualizer:
 
     def visualize(self, frame, frame_coordinates, id_bbox_colors, data_sample):
         frame = vis_box(frame, frame_coordinates, id_bbox_colors)
-        vis_img = visualize_frame(self.visualizer, [frame], data_sample)
+        vis_img = visualize_frame(self.visualizer, frame, data_sample)
 
         return vis_img
 

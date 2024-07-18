@@ -286,10 +286,10 @@ def get_color(seeds):
 
 
 def visualize_frame(visualizer, frames, data_samples):
-    for d, f in list(zip(data_samples, frames)):
+    for d in data_samples:
         visualizer.add_datasample(
             'result',
-            f,
+            frames,
             data_sample=d,
             draw_gt=False,
             draw_heatmap=False,
@@ -298,9 +298,9 @@ def visualize_frame(visualizer, frames, data_samples):
             wait_time=0,
             out_file=None,
             kpt_thr=0.3)
-        vis_frame = visualizer.get_image()
+        frames = visualizer.get_image()
 
-    return vis_frame
+    return frames
 
 
 def show_img(vis_img, waitkey=1, name='Image'):

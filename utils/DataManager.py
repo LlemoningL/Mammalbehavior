@@ -17,8 +17,8 @@ class DataManager:
         self.is_first_save = True
 
     def update_pose_result(self, pose_result):
-
-        self.pose_results.extend(pose_result)
+        if pose_result[0]['track_bboxes'].shape[1] > 4:
+            self.pose_results.extend(pose_result)
 
     def update_faceid_trackid(self, face_name, track_id):
         face_name, self.faceid_trackid = bind_faceid_trackid(face_name,
@@ -32,8 +32,7 @@ class DataManager:
                           track_id,
                           current_frame_id,
                           current_frame_time_stamp,
-                          behavior_cls,
-                          behavior_label):
+                          behavior_cls):
 
         if behavior_cls != '':
             self.Frameinfo['Face_id'].append(face_name)
@@ -68,7 +67,7 @@ class DataManager:
                                   encoding='utf_8_sig')
             self.Frameinfo = self.make_data_dict()
         self.is_first_save = False
-    def update_label_text(self, face_name, track_id, behavior_cls, behavior_prob):
+    def update_label_text(self, text_dict, face_name, track_id, behavior_cls=None, behavior_prob=None):
 
         # if behavior_cls != '' and behavior_prob != '':
         #     self.label_text = dict()
@@ -115,19 +114,42 @@ class DataManager:
     #     return pose_results_splited
 
         # 只在需要时更新 self.label_text
+        # if track_id not in text_dict:
+        #     text_dict[track_id] = {'face_name': face_name, 'track_id': track_id}
+        # else:
+        #     text_dict[track_id].update({id: {'face_name': face_name, 'track_id': track_id}})
+        # text = f'{text_dict[track_id]["face_name"]} {text_dict[track_id]["track_id"]} '
         if behavior_cls and behavior_prob:
-            self.label_text = self.label_text or {}
-            self.label_text[track_id] = (behavior_cls.title(), behavior_prob)
+            text_dict[track_id].update({'cls': behavior_cls,
+                                        'prob': behavior_prob})
+            text_extend = f' {behavior_cls} {behavior_prob}'
+            text_dict[track_id]['text_extend'] = text_extend
+        else:
+            text_dict[track_id]['text_extend'] = None
 
-        # 构建基本标签文本
-        label_text = f'{face_name} {track_id}'
+        # if 'cls' in text_dict[id] and 'prob' in text_dict[id]:
+        #
+        #     text += f'{text_dict[id]["cls"]} {text_dict[id]["prob"]}'
 
-        # 如果有行为信息，添加到标签文本
-        if track_id in self.label_text:
-            cls, prob = self.label_text[track_id]
-            label_text += f' {cls} {prob}'
 
-        return label_text
+
+
+
+
+        # if behavior_cls and behavior_prob:
+        #     self.label_text = self.label_text or {}
+        #     self.label_text[track_id] = (behavior_cls.title(), behavior_prob)
+        #
+        # # 构建基本标签文本
+        # text = {track_id: {}}
+        #
+        # # 如果有行为信息，添加到标签文本
+        # if track_id in self.label_text:
+        #     cls, prob = self.label_text[track_id]
+        #     text[track_id].update({'cls': cls,
+        #                            'prob': prob})
+
+        return text_dict
     def split_pose_result(self):
         num_person = max(len(x['keypoints']) for x in self.pose_results)
         pose_results_splited = {}
