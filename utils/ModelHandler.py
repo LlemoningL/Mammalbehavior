@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import queue
 import torch.nn as nn
 import datetime
 from overrides import override
@@ -17,7 +18,6 @@ from utils.util import split_xyxy, get_color
 from utils.util import FaceidInferencer
 from utils.FACEID import FaceidInferencerTRT
 from utils.reid_encoder import ReIDEncoder
-import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 from mmengine.dataset import Compose, pseudo_collate
@@ -26,10 +26,11 @@ from mmpose.structures import PoseDataSample, merge_data_samples
 from mmpose.structures.bbox import bbox_xywh2xyxy
 from mmdeploy.utils import get_input_shape, load_config
 from mmdeploy.apis.utils import build_task_processor
+import warnings
 
 
 class ModelHandler:
-    def __init__(self, configs, frame_shape, behavior_label, DataManager, Visualizer, fps):
+    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps):
         self.cfgs = configs
         self.frame_shape = frame_shape
         self.fps = fps
@@ -40,13 +41,13 @@ class ModelHandler:
         self.behavior_cls = ''
         self.behavior_prob = ''
         self.DataManager = DataManager
-        self.Visualizer = Visualizer
         self.data_sample = []
         self.frame_coordinates = dict()
         self.pose_results_splited = None
         self.id_bbox_colors = dict()
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
+        self.processed_frame_qeue = queue.Queue(maxsize=500)
 
     def process_frame(self,
                       frame,
@@ -76,7 +77,6 @@ class ModelHandler:
                     self.pose_results_splited = None
                 else:
                     track_bbox = np.reshape(deepcopy(pose_result), (1, -1))
-
                 self.process_single_object(frame,
                                            track_id,
                                            track_bbox,
@@ -86,14 +86,11 @@ class ModelHandler:
                                            self.behavior_prob,
                                            time_tag)
                 self.track_bboxes = None
-
-        frame = self.Visualizer.visualize(frame,
-                                          self.frame_coordinates,
-                                          self.id_bbox_colors,
-                                          self.data_sample)
+        self.processed_frame_qeue.put((frame, self.frame_coordinates, self.data_sample))
 
 
-        return frame
+
+
 
     def process_single_object(self,
                               frame,
@@ -110,7 +107,7 @@ class ModelHandler:
         self.data_sample.extend(data_sample)
         id = int(track_id)
         box = track_bbox[:, 0:4][0]
-        self.DataManager.update_pose_result(pose_result)
+        self.DataManager.update_pose_result(id, pose_result)
         body_x1, body_y1, body_x2, body_y2 = split_xyxy(track_bbox[:, 0:4])
         body_area = frame[body_y1:body_y2, body_x1:body_x2]
 
@@ -130,10 +127,10 @@ class ModelHandler:
         if time_tag:
             self.text_dict = self.DataManager.update_label_text(
                 self.text_dict,
-                                                                             face_name,
-                                                                             id,
-                                                                             behavior_cls,
-                                                                             behavior_prob)
+                face_name,
+                id,
+                behavior_cls,
+                behavior_prob)
         if self.text_dict[id]['text_extend'] is not None:
             text += self.text_dict[id]['text_extend']
 
@@ -435,9 +432,17 @@ class ModelHandler:
 
         return results
 
+    def get_frame(self):
+        while not self.processed_frame_qeue.empty():
+            try:
+                frame, frame_coordinates, data_sample = self.processed_frame_qeue.get(timeout=0.1)
+                return frame, frame_coordinates, data_sample
+            except queue.Empty:
+                return None, None, None
+
 
 class ModelTRTHandler(ModelHandler):
-    def __init__(self, configs, frame_shape, behavior_label, DataManager, Visualizer, fps):
+    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps):
         self.cfgs = configs
         self.fps = fps
         self.frame_shape = frame_shape
@@ -448,13 +453,13 @@ class ModelTRTHandler(ModelHandler):
         self.behavior_cls = ''
         self.behavior_prob = ''
         self.DataManager = DataManager
-        self.Visualizer = Visualizer
         self.data_sample = []
         self.frame_coordinates = dict()
         self.id_bbox_colors = dict()
         self.pose_results_splited = None
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
+        self.processed_frame_qeue = queue.Queue(maxsize=500)
 
     def process_frame(self,
                       frame,
@@ -484,7 +489,6 @@ class ModelTRTHandler(ModelHandler):
                     self.pose_results_splited = None
                 else:
                     track_bbox = np.reshape(deepcopy(pose_result), (1, -1))
-
                 self.process_single_object(frame,
                                            track_id,
                                            track_bbox,
@@ -494,14 +498,7 @@ class ModelTRTHandler(ModelHandler):
                                            self.behavior_prob,
                                            time_tag)
                 self.track_bboxes = None
-
-        frame = self.Visualizer.visualize(frame,
-                                          self.frame_coordinates,
-                                          self.id_bbox_colors,
-                                          self.data_sample)
-
-        return frame
-
+        self.processed_frame_qeue.put((frame, self.frame_coordinates, self.data_sample))
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.trt_engine, task='detect')

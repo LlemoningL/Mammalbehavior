@@ -10,7 +10,9 @@ from utils.util import vis_box, visualize_frame, show_img
 
 
 class Visualizer:
-    def __init__(self, cfgs):
+    def __init__(self, cfgs, line_thickness, padding):
+        self.line_thickness = line_thickness
+        self.padding = padding
         pose_config = mmengine.Config.fromfile(cfgs.MODEL.POSE.cfg)
         self.visualizer = VISUALIZERS.build(pose_config.visualizer)
         dataset_meta = None
@@ -25,7 +27,7 @@ class Visualizer:
         self.visualizer.set_dataset_meta(dataset_meta)
 
     def visualize(self, frame, frame_coordinates, id_bbox_colors, data_sample):
-        frame = vis_box(frame, frame_coordinates, id_bbox_colors)
+        frame = vis_box(frame, frame_coordinates, id_bbox_colors, self.line_thickness, self.padding)
         vis_img = visualize_frame(self.visualizer, frame, data_sample)
 
         return vis_img

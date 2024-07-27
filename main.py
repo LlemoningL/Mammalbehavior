@@ -54,6 +54,8 @@ def parser_args():
     parser.add_argument('cfg', help='Path to config file'),
     parser.add_argument('video', help='Path to the video file')
     parser.add_argument('target_type', help='Type of target')
+    parser.add_argument('--interval', default=3, type=int,
+                        help='Interval of recognised behaviour, in seconds')
     parser.add_argument('--trt', default=False,
                         help='Whether to use TRT engine')
     parser.add_argument('--show', default=False,
@@ -76,10 +78,10 @@ def parser_args():
 
 def main():
     cfgs, args = parser_args()
-    ViP = VideoProcessor(cfgs, args, trt=True)
-    # ViP = VideoProcessor(cfgs, args, trt=False)
-    # ViP.process_video(show=False, save_vid=False, show_fps=True)
-    ViP.process_video(show=True, save_vid=False, show_fps=True)
+    # ViP = VideoProcessor(cfgs, args, trt=args.trt)
+    # ViP.process_video(show=args.show, save_vid=args.save_vid, show_fps=args.show_fps)
+    ViP = VideoProcessor(cfgs, args, trt=False)
+    ViP.process_video(show=False, save_vid=False, show_fps=True)
 
 
 if __name__ == '__main__':

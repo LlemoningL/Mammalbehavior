@@ -154,7 +154,7 @@ class FaceidInferencer(ImageRetrievalInferencer):
         return results
 
 
-def plot_one_box(x, img, color=None, label=None, line_thickness=3, padding=6):
+def plot_one_box(x, img, color=None, label=None, line_thickness=3, padding=8):
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
     color = color or [random.randint(0, 255) for _ in range(3)]
@@ -469,7 +469,7 @@ def line_info(face_name,
     return temp_array
 
 
-def vis_box(img, coordinate_dict, id_bbox_colors):
+def vis_box(img, coordinate_dict, id_bbox_colors, line_thickness, padding):
 
 
     for k, v in coordinate_dict.items():
@@ -486,7 +486,8 @@ def vis_box(img, coordinate_dict, id_bbox_colors):
             plot_one_box(face_xyxy,
                          body_area,
                          color=color,
-                         line_thickness=2)
+                         line_thickness=line_thickness,
+                         padding=padding)
             # img[body_y1:body_y2, body_x1:body_x2] = body_area
 
         img = plot_one_box(body_coord,
