@@ -47,12 +47,18 @@ class ReIDEncoder:
             pretraine = False
         else:
             pretraine = True
+            print(f'when reid encoder wights_path is None, use trochvision.models.resnet50 with '
+                  f'pretrained=True as default encoder.')  # todo change to warning
         self.model = models.resnet50(pretrained=pretraine)  # todo use tensorRT or pytorch
 
         self.model.eval()
 
         if weights_path is not None:
-            self.model.load_state_dict(torch.load(weights_path))
+            ckpt = torch.load(weights_path)
+            num_ftrs = self.model.fc.in_features
+            num_classes = ckpt['nc']
+            self.model.fc = nn.Linear(num_ftrs, num_classes)
+            self.model.load_state_dict(ckpt['state_dict'])
 
         if self.device != 'cpu':
             self.model = self.model.eval().to(self.device).half()

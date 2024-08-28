@@ -170,7 +170,7 @@ class TRAINER:
         if self.args.resume == 'auto':
             self.cfg.resume = True
         model.train(data=self.cfg,
-                    epochs=50,
+                    epochs=100,
                     # imgsz=(1152, 768),
                     batch=128,
                     device=0,

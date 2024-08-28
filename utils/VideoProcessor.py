@@ -10,6 +10,7 @@ from .DataManager import DataManager
 from concurrent.futures import ThreadPoolExecutor
 from utils.util import get_color
 
+
 class VideoProcessor:
     def __init__(self,
                  cfg,
@@ -55,7 +56,7 @@ class VideoProcessor:
                 self.DataManager,
                 self.fps)
         self.timestamps = collections.deque(maxlen=self.fps)
-        self.frame_queue = queue.Queue(maxsize=300)
+        # self.frame_queue = queue.Queue(maxsize=300)
         self.write_queue = queue.Queue(maxsize=300)
         self.is_processing = True
         self.executor = ThreadPoolExecutor(max_workers=3)  # 创建线程池

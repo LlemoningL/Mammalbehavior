@@ -217,6 +217,7 @@ class ModelHandler:
         track_result = self.tracker.track(source=img,
                                           device=self.DEVICE,
                                           verbose=False,
+                                          persist=True,
                                           encoder=self.reid_encoder,
                                           with_reid=self.cfgs.MODEL.BODY.with_reid,
                                           frame_rate=self.fps)
@@ -511,7 +512,11 @@ class ModelTRTHandler(ModelHandler):
         self.tracker = YOLO(self.cfgs.MODEL.BODY.trt_engine, task='detect')
         if self.cfgs.MODEL.BODY.with_reid:
             # input_size = (self.frame_shape[0], self.frame_shape[1])
-            input_size = (256, 256)
+            if self.cfgs.MODEL.BODY.reid_encoder is not None:
+                ckpt = torch.load(self.cfgs.MODEL.BODY.reid_encoder)
+                input_size = ckpt['input_size']
+            else:
+                input_size = (224, 224)
             self.reid_encoder = ReIDEncoder(input_size=input_size,
                                             # weights_path=self.cfgs.MODEL.BODY.r_e_trt_engine)
                                             weights_path=self.cfgs.MODEL.BODY.reid_encoder)

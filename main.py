@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from utils.VideoProcessor import VideoProcessor
 from yacs.config import CfgNode as CN
 
+
 def default():
     _C = CN()
     _C.PRE = False

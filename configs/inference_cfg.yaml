@@ -10,6 +10,9 @@ MODEL:
   BODY:
     weight: path/to/body/detect/weight.pt
     trt_engine: path/to/body/detect/weight_trt.engine
+    reid_encoder:
+    r_e_trt_engine:
+    with_reid: False
 
   # path to config and weight of mmpose model
   POSE:

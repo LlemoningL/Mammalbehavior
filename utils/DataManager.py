@@ -5,20 +5,25 @@ from pathlib import Path
 
 
 class DataManager:
-    def __init__(self, output_path, traget_type, behavior_label):
+    def __init__(self, output_path, traget_type, behavior_label, interval):
         self.target_type = traget_type
         self.behavior_label = behavior_label
-        self.pose_results = []
+        self.pose_results = {}
         self.faceid_trackid = {}
         self.Frameinfo = self.make_data_dict()
         self.label_text = {}
         self.frame_coordinates = {}
-        self.csv_path = Path(output_path) / f'{output_path.stem}_info.csv'
+        self.csv_path = Path(output_path) / f'info_{interval}s_{output_path.stem}.csv'
         self.is_first_save = True
 
-    def update_pose_result(self, pose_result):
-        if pose_result[0]['track_bboxes'].shape[1] > 4:
-            self.pose_results.extend(pose_result)
+    def update_pose_result(self, id, pose_result):
+        if pose_result[0]['track_bboxes'].shape[1] <= 4:
+            return
+        if id not in self.pose_results:
+            self.pose_results[id] = []
+            self.pose_results[id].extend(pose_result)
+        else:
+            self.pose_results[id].extend(pose_result)
 
     def update_faceid_trackid(self, face_name, track_id):
         face_name, self.faceid_trackid = bind_faceid_trackid(face_name,
@@ -68,7 +73,6 @@ class DataManager:
             self.Frameinfo = self.make_data_dict()
         self.is_first_save = False
 
-
     def update_label_text(self, text_dict, face_name, track_id, behavior_cls=None, behavior_prob=None):
 
         if behavior_cls and behavior_prob:
@@ -81,33 +85,32 @@ class DataManager:
 
         return text_dict
     def split_pose_result(self):
-        num_person = max(len(x['keypoints']) for x in self.pose_results)
-        pose_results_splited = {}
+        # num_person = max(len(x['keypoints']) for x in self.pose_results)
+        # pose_results_splited = {}
+        #
+        # for d in self.pose_results:
+        #     frame_person = min(len(d['keypoints']), num_person)
+        #
+        #     # 使用NumPy的广播功能一次性创建所有字典
+        #     temp_dicts = [{
+        #         'bboxes': d['bboxes'][i:i + 1],
+        #         'keypoints': d['keypoints'][i:i + 1],
+        #         'bbox_scores': d['bbox_scores'][i:i + 1],
+        #         'keypoint_scores': d['keypoint_scores'][i:i + 1]
+        #     } for i in range(frame_person)]
+        #
+        #     # 使用NumPy索引一次性获取所有track_ids
+        #     # if len(d['track_bboxes']) == 5:
+        #     try:
+        #         track_ids = d['track_bboxes'][:frame_person, 4].astype(int)
+        #         for track_id, temp_dict in zip(track_ids, temp_dicts):
+        #             # 使用字典推导式更新pose_results_splited
+        #             pose_results_splited.setdefault(track_id, []).append(temp_dict)
+        #     except:
+        #         continue
 
-        for d in self.pose_results:
-            frame_person = min(len(d['keypoints']), num_person)
-
-            # 使用NumPy的广播功能一次性创建所有字典
-            temp_dicts = [{
-                'bboxes': d['bboxes'][i:i + 1],
-                'keypoints': d['keypoints'][i:i + 1],
-                'bbox_scores': d['bbox_scores'][i:i + 1],
-                'keypoint_scores': d['keypoint_scores'][i:i + 1]
-            } for i in range(frame_person)]
-
-            # 使用NumPy索引一次性获取所有track_ids
-            # if len(d['track_bboxes']) == 5:
-            try:
-                track_ids = d['track_bboxes'][:frame_person, 4].astype(int)
-                for track_id, temp_dict in zip(track_ids, temp_dicts):
-                    # 使用字典推导式更新pose_results_splited
-                    pose_results_splited.setdefault(track_id, []).append(temp_dict)
-            except:
-                continue
-
-
-
-        self.pose_results = []
+        pose_results_splited = self.pose_results
+        self.pose_results = {}
         return pose_results_splited
 
     def label(self):

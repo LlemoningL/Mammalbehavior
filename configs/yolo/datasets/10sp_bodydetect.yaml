@@ -8,25 +8,21 @@
 
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: /home/gst/14tdisk/14-4tdisk/1a数据总库20221022/识别数据汇总/2023.10文章数据补充已处理数据/FINIAL_DATA/primate_bodydetect4extract/primate_bodydetectlabel4extract_Autodataset # dataset root dir
+path: /home/gst/lj/24tdisk/ljdata/animalbehavior_about/total_dateset/bodydetect/body_detectcoco2yolo # dataset root dir
 train: images/train  # train images (relative to 'path') 4 images
 val: images/val  # val images (relative to 'path') 4 images
 test: images/test # test images (optional)
-verbose: False
 # Classes
 names:
-  0: Ring-tailed Lemur
-  1: Golden Monkey
-  2: Hamadryas Baboon
-#  0: Black Bear
-#  1: Ring-tailed Lemur
-#  2: Golden Monkey
-#  3: Tiger
-#  4: Takin
-#  5: Lechwe
-#  6: Zebra
-#  7: Gnu
-#  8: Brown Bear
-#  9: Hamadryas Baboon
+  0: Black Bear
+  1: Ring-tailed Lemur
+  2: Golden Monkey
+  3: Tiger
+  4: Takin
+  5: Lechwe
+  6: Zebra
+  7: Gnu
+  8: Brown Bear
+  9: Hamadryas Baboon
 
 
