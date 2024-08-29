@@ -3,6 +3,7 @@ import torch
 import queue
 import torch.nn as nn
 import datetime
+from collections import deque
 from overrides import override
 from copy import deepcopy
 from ultralytics import YOLO
@@ -47,7 +48,7 @@ class ModelHandler:
         self.id_bbox_colors = dict()
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
-        self.processed_frame_qeue = queue.Queue(maxsize=500)
+        self.processed_frame_qeue = deque(maxlen=3000)
 
     def process_frame(self,
                       frame,
@@ -77,16 +78,17 @@ class ModelHandler:
                     self.pose_results_splited = None
                 else:
                     track_bbox = np.reshape(deepcopy(pose_result), (1, -1))
-                self.process_single_object(frame,
-                                           track_id,
-                                           track_bbox,
-                                           current_frame_id,
-                                           current_frame_time_stamp,
-                                           self.behavior_cls,
-                                           self.behavior_prob,
-                                           time_tag)
+                self.process_single_object(
+                    frame,
+                    track_id,
+                    track_bbox,
+                    current_frame_id,
+                    current_frame_time_stamp,
+                    self.behavior_cls,
+                    self.behavior_prob,
+                    time_tag)
                 self.track_bboxes = None
-        self.processed_frame_qeue.put((frame, self.frame_coordinates, self.data_sample))
+        self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
 
 
 
@@ -112,11 +114,12 @@ class ModelHandler:
         body_area = frame[body_y1:body_y2, body_x1:body_x2]
 
         face_name, face_result = self.process_face(body_area, track_bbox)
-        self.DataManager.update_frame_info(face_name,
-                                           id,
-                                           current_frame_id,
-                                           current_frame_time_stamp,
-                                           behavior_cls)
+        self.DataManager.update_frame_info(
+            face_name,
+            id,
+            current_frame_id,
+            current_frame_time_stamp,
+            behavior_cls)
 
         if id not in self.text_dict:
             self.text_dict[id] = {'face_name': face_name, 'track_id': id, 'cls': '', 'prob': '', 'text_extend': None}
@@ -135,19 +138,22 @@ class ModelHandler:
             text += self.text_dict[id]['text_extend']
 
         if face_result is not None:
-            self.frame_coordinates = self.update_frame_coordinates(id,
-                                                                   box,
-                                                                   face_result,
-                                                                   text)
+            self.frame_coordinates = self.update_frame_coordinates(
+                id,
+                box,
+                face_result,
+                text)
 
     def process_face(self, body_area, track_bbox):
         face_result = self.Face(body_area)
         if face_result[0].boxes.shape[0] == 0:
-            return None
-        face_xyxy = face_result[0].boxes.xyxy.cpu().numpy()[0]
-        face_x1, face_y1, face_x2, face_y2 = split_xyxy(face_xyxy)
-        face_area = body_area[face_y1:face_y2, face_x1:face_x2]
-        face_name, face_score = self.FaceID(face_area)
+            face_name = None
+            face_result = None
+        else:
+            face_xyxy = face_result[0].boxes.xyxy.cpu().numpy()[0]
+            face_x1, face_y1, face_x2, face_y2 = split_xyxy(face_xyxy)
+            face_area = body_area[face_y1:face_y2, face_x1:face_x2]
+            face_name, face_score = self.FaceID(face_area)
         face_name = self.DataManager.update_faceid_trackid(face_name, int(track_bbox[:, -1]))
 
         return face_name, face_result
@@ -167,37 +173,43 @@ class ModelHandler:
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.weight)
         print('loaded face detect model')
-        self.faceid = FaceidInferencer(self.cfgs.MODEL.FACEID.cfg,
-                                       prototype=self.cfgs.MODEL.FACEID.prototype,
-                                       prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache,
-                                       pretrained=self.cfgs.MODEL.FACEID.weight,
-                                       device=self.DEVICE)
+        self.faceid = FaceidInferencer(
+            self.cfgs.MODEL.FACEID.cfg,
+            prototype=self.cfgs.MODEL.FACEID.prototype,
+            prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache,
+            pretrained=self.cfgs.MODEL.FACEID.weight,
+            device=self.DEVICE)
         print('loaded face id model')
         self.tracker = YOLO(self.cfgs.MODEL.BODY.weight)
         print('loaded track model')
         if self.cfgs.MODEL.BODY.with_reid:
-            input_size = (self.tracker.overrides.get('imgsz'),
-                          self.tracker.overrides.get('imgsz'))
-            self.reid_encoder = ReIDEncoder(input_size=input_size,
-                                            weights_path=self.cfgs.MODEL.BODY.reid_encoder)
+            if self.cfgs.MODEL.BODY.reid_encoder is not None:
+                ckpt = torch.load(self.cfgs.MODEL.BODY.reid_encoder)
+                input_size = ckpt['input_size']
+            else:
+                input_size = (224, 224)
+            self.reid_encoder = ReIDEncoder(
+                input_size=input_size,
+                weights_path=self.cfgs.MODEL.BODY.reid_encoder)
 
             print('loaded reid model')
         else:
             self.reid_encoder = None
 
-        self.behavior = init_recognizer(self.cfgs.MODEL.BEHAVIOR.cfg,
-                                        self.cfgs.MODEL.BEHAVIOR.weight,
-                                        device=self.DEVICE)
+        self.behavior = init_recognizer(
+            self.cfgs.MODEL.BEHAVIOR.cfg,
+            self.cfgs.MODEL.BEHAVIOR.weight,
+            device=self.DEVICE)
         print('loaded behavior model')
         behavior_cfg = Config.fromfile(self.cfgs.MODEL.BEHAVIOR.cfg)
         test_pipeline_cfg = behavior_cfg.test_pipeline
         self.behavior_test_pipeline = Compose(test_pipeline_cfg)
 
-        self.pose = self.pose_model(config=self.cfgs.MODEL.POSE.cfg,
-                                    checkpoint=self.cfgs.MODEL.POSE.weight,
-                                    device=self.DEVICE)
+        self.pose = self.pose_model(
+            config=self.cfgs.MODEL.POSE.cfg,
+            checkpoint=self.cfgs.MODEL.POSE.weight,
+            device=self.DEVICE)
         print('loaded pose model')
-
 
     def Face(self, body_area):
         face_reasutl = self.face(body_area, device=self.DEVICE, stream=False, verbose=False)
@@ -214,14 +226,15 @@ class ModelHandler:
         return face_name, face_score
 
     def Track(self, img):
-        track_result = self.tracker.track(source=img,
-                                          device=self.DEVICE,
-                                          verbose=False,
-                                          persist=True,
-                                          encoder=self.reid_encoder,
-                                          with_reid=self.cfgs.MODEL.BODY.with_reid,
-                                          frame_rate=self.fps)
-        if track_result[0].boxes.shape[0] == 0:
+        track_result = self.tracker.track(
+            source=img,
+            device=self.DEVICE,
+            verbose=False,
+            # persist=True,
+            encoder=self.reid_encoder,
+            with_reid=self.cfgs.MODEL.BODY.with_reid,
+            frame_rate=self.fps)
+        if track_result[0].boxes.shape[0] == 0 or track_result[0].boxes.id is None:
             return None
         for result in track_result:
             track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
@@ -233,10 +246,11 @@ class ModelHandler:
 
         results = []
         data_samples = []
-        pose_data_samples = self.inference_topdown(self.pose,
-                                                   frame_paths,
-                                                   det_results[0][..., :4],
-                                                   bbox_format='xyxy')
+        pose_data_samples = self.inference_topdown(
+            self.pose,
+            frame_paths,
+            det_results[0][..., :4],
+            bbox_format='xyxy')
         pose_data_sample = merge_data_samples(pose_data_samples)
         pose_data_sample.dataset_meta = self.pose.dataset_meta
         # make fake pred_instances
@@ -433,13 +447,13 @@ class ModelHandler:
 
         return results
 
-    def get_frame(self):
-        while not self.processed_frame_qeue.empty():
-            try:
-                frame, frame_coordinates, data_sample = self.processed_frame_qeue.get(timeout=0.1)
-                return frame, frame_coordinates, data_sample
-            except queue.Empty:
-                return None, None, None
+    # def get_frame(self):
+    #     while self.processed_frame_qeue:
+    #         try:
+    #             frame, frame_coordinates, data_sample = self.processed_frame_qeue.popleft()
+    #             return frame, frame_coordinates, data_sample
+    #         except:
+    #             return None, None, None
 
 
 class ModelTRTHandler(ModelHandler):
@@ -460,7 +474,8 @@ class ModelTRTHandler(ModelHandler):
         self.pose_results_splited = None
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
-        self.processed_frame_qeue = queue.Queue(maxsize=500)
+        # self.processed_frame_qeue = queue.Queue(maxsize=500)
+        self.processed_frame_qeue = deque(maxlen=500)
 
     def process_frame(self,
                       frame,
@@ -490,24 +505,26 @@ class ModelTRTHandler(ModelHandler):
                     self.pose_results_splited = None
                 else:
                     track_bbox = np.reshape(deepcopy(pose_result), (1, -1))
-                self.process_single_object(frame,
-                                           track_id,
-                                           track_bbox,
-                                           current_frame_id,
-                                           current_frame_time_stamp,
-                                           self.behavior_cls,
-                                           self.behavior_prob,
-                                           time_tag)
+                self.process_single_object(
+                    frame,
+                    track_id,
+                    track_bbox,
+                    current_frame_id,
+                    current_frame_time_stamp,
+                    self.behavior_cls,
+                    self.behavior_prob,
+                    time_tag)
                 self.track_bboxes = None
-        self.processed_frame_qeue.put((frame, self.frame_coordinates, self.data_sample))
+        self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.trt_engine, task='detect')
         print('loaded face detect model')
-        self.faceid = FaceidInferencerTRT(model_cfg=self.cfgs.MODEL.FACEID.cfg,
-                                          image_encoder=self.cfgs.MODEL.FACEID.trt_engine,
-                                          prototype=self.cfgs.MODEL.FACEID.prototype,
-                                          prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache)
+        self.faceid = FaceidInferencerTRT(
+            model_cfg=self.cfgs.MODEL.FACEID.cfg,
+            image_encoder=self.cfgs.MODEL.FACEID.trt_engine,
+            prototype=self.cfgs.MODEL.FACEID.prototype,
+            prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache)
         print('loaded face id model')
         self.tracker = YOLO(self.cfgs.MODEL.BODY.trt_engine, task='detect')
         if self.cfgs.MODEL.BODY.with_reid:
@@ -524,18 +541,20 @@ class ModelTRTHandler(ModelHandler):
         else:
             self.reid_encoder = None
 
-        self.behavior = init_recognizer(self.cfgs.MODEL.BEHAVIOR.cfg,
-                                        self.cfgs.MODEL.BEHAVIOR.weight,
-                                        device=self.DEVICE)
+        self.behavior = init_recognizer(
+            self.cfgs.MODEL.BEHAVIOR.cfg,
+            self.cfgs.MODEL.BEHAVIOR.weight,
+            device=self.DEVICE)
         print('loaded behavior model')
         behavior_cfg = Config.fromfile(self.cfgs.MODEL.BEHAVIOR.cfg)
         test_pipeline_cfg = behavior_cfg.test_pipeline
         self.behavior_test_pipeline = Compose(test_pipeline_cfg)
 
-        self.pose, self.dataset_meta = self.pose_model(model_cfg=self.cfgs.MODEL.POSE.cfg,
-                                                       deploy_cfg=self.cfgs.MODEL.POSE.deploy_cfg,
-                                                       backend_files=[self.cfgs.MODEL.POSE.trt_engine],
-                                                       device=self.DEVICE)
+        self.pose, self.dataset_meta = self.pose_model(
+            model_cfg=self.cfgs.MODEL.POSE.cfg,
+            deploy_cfg=self.cfgs.MODEL.POSE.deploy_cfg,
+            backend_files=[self.cfgs.MODEL.POSE.trt_engine],
+            device=self.DEVICE)
         print('loaded pose model')
 
     def Pose(self, frame_paths, det_results: List[np.ndarray]):
@@ -547,11 +566,12 @@ class ModelTRTHandler(ModelHandler):
         data_samples = []
         # print('Performing Human Pose Estimation for each frame')
 
-        pose_data_samples = self.inference_topdown(self.pose,
-                                                   frame_paths,
-                                                   det_results[0][..., :4],
-                                                   bbox_format='xyxy',
-                                                   model_cfg=self.cfgs.MODEL.POSE.cfg,)
+        pose_data_samples = self.inference_topdown(
+            self.pose,
+            frame_paths,
+            det_results[0][..., :4],
+            bbox_format='xyxy',
+            model_cfg=self.cfgs.MODEL.POSE.cfg,)
         pose_data_sample = merge_data_samples(pose_data_samples)
         pose_data_sample.dataset_meta = self.dataset_meta
         # make fake pred_instances

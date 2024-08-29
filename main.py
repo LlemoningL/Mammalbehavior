@@ -57,13 +57,13 @@ def parser_args():
     parser.add_argument('target_type', help='Type of target')
     parser.add_argument('--interval', default=3, type=int,
                         help='Interval of recognised behaviour, in seconds')
-    parser.add_argument('--trt', default=False,
+    parser.add_argument('--trt', default=False, action='store_true',
                         help='Whether to use TRT engine')
-    parser.add_argument('--show', default=False,
+    parser.add_argument('--show', default=False, action='store_true',
                         help='Whether to show inferenced frame')
-    parser.add_argument('--save_vid', default=False,
+    parser.add_argument('--save_vid', default=False, action='store_true',
                         help='Whether to save inferenced video')
-    parser.add_argument('--show_fps', default=False,
+    parser.add_argument('--show_fps', default=False, action='store_true',
                         help='Whether to show inference fps')
     parser.add_argument('--behavior_label',
                         default='./tools/behavior_label.json',
@@ -81,8 +81,8 @@ def main():
     cfgs, args = parser_args()
     # ViP = VideoProcessor(cfgs, args, trt=args.trt)
     # ViP.process_video(show=args.show, save_vid=args.save_vid, show_fps=args.show_fps)
-    ViP = VideoProcessor(cfgs, args, trt=False)
-    ViP.process_video(show=False, save_vid=False, show_fps=True)
+    ViP = VideoProcessor(cfgs, args, trt=args.trt)
+    ViP.process_video(show=args.show, save_vid=args.save_vid, show_fps=args.show_fps)
 
 
 if __name__ == '__main__':

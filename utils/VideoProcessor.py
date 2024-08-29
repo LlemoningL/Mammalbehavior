@@ -1,7 +1,6 @@
 import cv2
 import time
 import collections
-import queue
 import math
 from pathlib import Path
 from .Visualizer import Visualizer
@@ -36,10 +35,11 @@ class VideoProcessor:
         self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # noqa
 
         self.Visualizer = Visualizer(cfg, line_thickness=line_thickness, padding=padding)
-        self.DataManager = DataManager(video_save_path,
-                                       arg.target_type,
-                                       arg.behavior_label,
-                                       arg.interval)
+        self.DataManager = DataManager(
+            video_save_path,
+            arg.target_type,
+            arg.behavior_label,
+            arg.interval)
         behavior_label = self.DataManager.label()
         if trt:
             self.ModelHandler = ModelTRTHandler(
@@ -57,7 +57,7 @@ class VideoProcessor:
                 self.fps)
         self.timestamps = collections.deque(maxlen=self.fps)
         # self.frame_queue = queue.Queue(maxsize=300)
-        self.write_queue = queue.Queue(maxsize=300)
+        self.write_queue = collections.deque(maxlen=3000)
         self.is_processing = True
         self.executor = ThreadPoolExecutor(max_workers=3)  # 创建线程池
         self.show_fps_ = False
@@ -78,10 +78,11 @@ class VideoProcessor:
         if self.show_frame or self.save_vid:
             self.executor.submit(self.display_frames)
 
+
         # 等待所有任务完成
         self.executor.shutdown(wait=True)
-        while not self.write_queue.empty():
-            time.sleep(1)
+        while self.is_processing and self.write_queue:
+            time.sleep(0.01)
         self.cleanup()
 
     def process_frames(self):
@@ -113,12 +114,12 @@ class VideoProcessor:
                 if frame_counter >= 5:
                     frame_tag = True
                     frame_counter = 0
-
-                self.ModelHandler.process_frame(frame,
-                                                frame_tag,
-                                                time_tag,
-                                                current_frame_id,
-                                                self.current_frame_time_stamp)
+                self.ModelHandler.process_frame(
+                    frame,
+                    frame_tag,
+                    time_tag,
+                    current_frame_id,
+                    self.current_frame_time_stamp)
 
                 if self.show_fps_:
                     vid_fps = self.show_fps(current_frame_id)
@@ -137,12 +138,11 @@ class VideoProcessor:
             print(f'\nelapsed {time_elapsed:.1f} s, avg {avg_fps:.1f} FPS')
             self.DataManager.save_generated_data()
             if self.show_frame or self.save_vid:
-                while not self.ModelHandler.processed_frame_qeue.empty():
-                    time.sleep(1)
+                while self.ModelHandler.processed_frame_qeue:
+                    time.sleep(0.01)
             else:
-                while not self.ModelHandler.processed_frame_qeue.empty():
-                    self.ModelHandler.processed_frame_qeue.get(block=False)
-
+                while self.ModelHandler.processed_frame_qeue:
+                    self.ModelHandler.processed_frame_qeue.popleft()
         finally:
             self.is_processing = False
             self.cap.release()
@@ -167,30 +167,38 @@ class VideoProcessor:
         print('all done')
 
     def write_frames(self):
-        while self.is_processing or not self.write_queue.empty():
+        while self.is_processing or self.write_queue:
             try:
-                frame = self.write_queue.get(timeout=1)
+                frame = self.write_queue.popleft()
                 self.videoWriter.write(frame)
-            except queue.Empty:
+            except:
+                time.sleep(0.01)
                 continue
 
     def display_frames(self):
-        while self.is_processing:
+        while self.is_processing or self.ModelHandler.processed_frame_qeue:
+            # try:
+                # frame, frame_coordinates, data_sample = self.ModelHandler.get_frame()
+                # if frame is None:
+                #     time.sleep(0.01)  # 短暂睡眠，避免CPU过度使用
+                #     continue
             try:
-                frame, frame_coordinates, data_sample = self.ModelHandler.get_frame()
-                if frame is None:
-                    time.sleep(0.01)  # 短暂睡眠，避免CPU过度使用
-                    continue
-                frame = self.Visualizer.visualize(frame,
-                                                  frame_coordinates,
-                                                  self.id_bbox_colors,
-                                                  data_sample)
-                if self.show_frame:
-                    self.Visualizer.show(frame)
-                if self.save_vid:
-                    self.write_queue.put(frame)
+                frame, frame_coordinates, data_sample = self.ModelHandler.processed_frame_qeue.popleft()
             except:
-               pass
+                time.sleep(0.01)
+                continue
+
+            frame = self.Visualizer.visualize(
+                frame,
+                frame_coordinates,
+                self.id_bbox_colors,
+                data_sample)
+            if self.show_frame:
+                self.Visualizer.show(frame)
+            if self.save_vid:
+                self.write_queue.append(frame)
+            # except:
+            #    pass
 
     def color(self, track_ids):
         bbox_colors = get_color(track_ids)
