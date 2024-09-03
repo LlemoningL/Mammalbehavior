@@ -48,7 +48,7 @@ class ModelHandler:
         self.id_bbox_colors = dict()
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
-        self.processed_frame_qeue = deque(maxlen=3000)
+        # self.processed_frame_qeue = deque(maxlen=3000)
 
     def process_frame(self,
                       frame,
@@ -63,17 +63,15 @@ class ModelHandler:
         if time_tag:
             self.pose_results_splited = self.DataManager.split_pose_result()
 
-        if self.track_bboxes is not None or self.pose_results_splited is not None:
+        if self.track_bboxes is not None or self.pose_results_splited:
             obejects_to_process = self.pose_results_splited \
-                if self.pose_results_splited is not None \
-                else {k[-1]: k for k in self.track_bboxes}
+                if self.pose_results_splited else {k[-1]: k for k in self.track_bboxes}
 
             self.frame_coordinates = {}
             self.data_sample = []
             for track_id, pose_result in obejects_to_process.items():
                 if time_tag:
-                    self.behavior_cls, self.behavior_prob = self.Behavior(pose_result,
-                                                                          self.frame_shape)
+                    self.behavior_cls, self.behavior_prob = self.Behavior(pose_result, self.frame_shape)
                     track_bbox = pose_result[-1]['bboxes']
                     self.pose_results_splited = None
                 else:
@@ -88,7 +86,8 @@ class ModelHandler:
                     self.behavior_prob,
                     time_tag)
                 self.track_bboxes = None
-        self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
+        # self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
+        return frame, self.frame_coordinates, self.data_sample
 
 
 
@@ -154,6 +153,8 @@ class ModelHandler:
             face_x1, face_y1, face_x2, face_y2 = split_xyxy(face_xyxy)
             face_area = body_area[face_y1:face_y2, face_x1:face_x2]
             face_name, face_score = self.FaceID(face_area)
+            if face_score < 0.8:
+                face_name = None
         face_name = self.DataManager.update_faceid_trackid(face_name, int(track_bbox[:, -1]))
 
         return face_name, face_result
@@ -212,7 +213,12 @@ class ModelHandler:
         print('loaded pose model')
 
     def Face(self, body_area):
-        face_reasutl = self.face(body_area, device=self.DEVICE, stream=False, verbose=False)
+        face_reasutl = self.face(body_area,
+                                 device=self.DEVICE,
+                                 verbose=False,
+                                 # stream=True,
+                                 conf=0.95,
+                                 stream_buffer=True)
 
         return face_reasutl
 
@@ -230,15 +236,21 @@ class ModelHandler:
             source=img,
             device=self.DEVICE,
             verbose=False,
-            # persist=True,
+            persist=True,
+            stream=True,
+            iou=0.65,
             encoder=self.reid_encoder,
             with_reid=self.cfgs.MODEL.BODY.with_reid,
             frame_rate=self.fps)
-        if track_result[0].boxes.shape[0] == 0 or track_result[0].boxes.id is None:
+
+        try:
+            for result in track_result:
+                if result.boxes.shape[0] == 0:
+                    return None
+                track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
+                return track_box.cpu().numpy()
+        except:
             return None
-        for result in track_result:
-            track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
-            return track_box.cpu().numpy()
 
     def Pose(self, frame_paths, det_results: List[np.ndarray]):
         new_instance_name = f'mmpose-{datetime.datetime.now()}'
@@ -475,7 +487,7 @@ class ModelTRTHandler(ModelHandler):
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
         # self.processed_frame_qeue = queue.Queue(maxsize=500)
-        self.processed_frame_qeue = deque(maxlen=500)
+        # self.processed_frame_qeue = deque(maxlen=3000)
 
     def process_frame(self,
                       frame,
@@ -515,7 +527,9 @@ class ModelTRTHandler(ModelHandler):
                     self.behavior_prob,
                     time_tag)
                 self.track_bboxes = None
-        self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
+        # self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
+        return frame, self.frame_coordinates, self.data_sample
+
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.trt_engine, task='detect')

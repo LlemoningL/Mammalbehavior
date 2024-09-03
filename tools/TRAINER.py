@@ -47,7 +47,7 @@ class TRAINER:
 
     def train_face(self):
         if self.task != 'face':
-            raise ValueError('task must be [track]')
+            raise ValueError('task must be [face]')
         self.yolo()
 
     def train_track(self):
@@ -166,7 +166,7 @@ class TRAINER:
         runner.train()
 
     def yolo(self):
-        model = YOLO('yolov8.yaml').load('yolov8s.pt')
+        model = YOLO('yolov8.yaml').load('yolov8m.pt')
         if self.args.resume == 'auto':
             self.cfg.resume = True
         model.train(data=self.cfg,
