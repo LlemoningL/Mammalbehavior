@@ -1,9 +1,7 @@
 import numpy as np
 import torch
-import queue
 import torch.nn as nn
 import datetime
-from collections import deque
 from overrides import override
 from copy import deepcopy
 from ultralytics import YOLO
@@ -15,8 +13,7 @@ from mmengine.structures import InstanceData
 from mmaction.apis import inference_skeleton, init_recognizer
 from mmpose.datasets.datasets.utils import parse_pose_metainfo
 from mmpose.models.builder import build_pose_estimator
-from utils.util import split_xyxy, get_color
-from utils.util import FaceidInferencer
+from utils.util import split_xyxy, get_color, is_boxid, FaceidInferencer
 from utils.FACEID import FaceidInferencerTRT
 from utils.reid_encoder import ReIDEncoder
 from pathlib import Path
@@ -31,7 +28,8 @@ import warnings
 
 
 class ModelHandler:
-    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps):
+    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps, logger):
+        self.logger = logger
         self.cfgs = configs
         self.frame_shape = frame_shape
         self.fps = fps
@@ -48,7 +46,6 @@ class ModelHandler:
         self.id_bbox_colors = dict()
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
-        # self.processed_frame_qeue = deque(maxlen=3000)
 
     def process_frame(self,
                       frame,
@@ -58,7 +55,19 @@ class ModelHandler:
                       current_frame_time_stamp):
 
         if frame_tag:
-            self.track_bboxes = self.Track(frame)
+            _box, _id = self.Track(frame)
+            # def is_boxid(box, id, data):
+            #     if id is not None:
+            #         return np.hstack([box, id])
+            #     elif data:
+            #         if box.shape[0] == len(data.keys()):
+            #             _ids = np.array(data.keys())
+            #             return np.hstack([box, _ids])
+            #         else:
+            #             return None
+            #     else:
+            #         return None
+            self.track_bboxes = is_boxid(_box, _id, self.frame_coordinates)
 
         if time_tag:
             self.pose_results_splited = self.DataManager.split_pose_result()
@@ -86,12 +95,7 @@ class ModelHandler:
                     self.behavior_prob,
                     time_tag)
                 self.track_bboxes = None
-        # self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
         return frame, self.frame_coordinates, self.data_sample
-
-
-
-
 
     def process_single_object(self,
                               frame,
@@ -112,13 +116,7 @@ class ModelHandler:
         body_x1, body_y1, body_x2, body_y2 = split_xyxy(track_bbox[:, 0:4])
         body_area = frame[body_y1:body_y2, body_x1:body_x2]
 
-        face_name, face_result = self.process_face(body_area, track_bbox)
-        self.DataManager.update_frame_info(
-            face_name,
-            id,
-            current_frame_id,
-            current_frame_time_stamp,
-            behavior_cls)
+        face_name, face_result = self.process_face(body_area, track_bbox, current_frame_id)
 
         if id not in self.text_dict:
             self.text_dict[id] = {'face_name': face_name, 'track_id': id, 'cls': '', 'prob': '', 'text_extend': None}
@@ -127,6 +125,12 @@ class ModelHandler:
 
         text = f'{face_name} {id}'
         if time_tag:
+            self.DataManager.update_frame_info(
+                face_name,
+                id,
+                current_frame_id,
+                current_frame_time_stamp,
+                behavior_cls)
             self.text_dict = self.DataManager.update_label_text(
                 self.text_dict,
                 face_name,
@@ -136,14 +140,14 @@ class ModelHandler:
         if self.text_dict[id]['text_extend'] is not None:
             text += self.text_dict[id]['text_extend']
 
-        if face_result is not None:
+        if face_result is not None or box.shape[0] != 0:
             self.frame_coordinates = self.update_frame_coordinates(
                 id,
                 box,
                 face_result,
                 text)
 
-    def process_face(self, body_area, track_bbox):
+    def process_face(self, body_area, track_bbox, frame_id):
         face_result = self.Face(body_area)
         if face_result[0].boxes.shape[0] == 0:
             face_name = None
@@ -153,9 +157,11 @@ class ModelHandler:
             face_x1, face_y1, face_x2, face_y2 = split_xyxy(face_xyxy)
             face_area = body_area[face_y1:face_y2, face_x1:face_x2]
             face_name, face_score = self.FaceID(face_area)
-            if face_score < 0.8:
+            if face_score < 0.7:
                 face_name = None
-        face_name = self.DataManager.update_faceid_trackid(face_name, int(track_bbox[:, -1]))
+        face_name = self.DataManager.update_faceid_trackid(face_name,
+                                                           int(track_bbox[:, -1]),
+                                                           frame_id)
 
         return face_name, face_result
 
@@ -173,16 +179,22 @@ class ModelHandler:
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.weight)
-        print('loaded face detect model')
+        print('loads face detect model')
+        self.logger.info('loads face detect model')
+
+        new_instance_name = f'mmpretrain-{datetime.datetime.now()}'
+        DefaultScope.get_instance(new_instance_name, scope_name='mmpretrain')
         self.faceid = FaceidInferencer(
             self.cfgs.MODEL.FACEID.cfg,
             prototype=self.cfgs.MODEL.FACEID.prototype,
             prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache,
             pretrained=self.cfgs.MODEL.FACEID.weight,
             device=self.DEVICE)
-        print('loaded face id model')
+        print('loads face id model')
+        self.logger.info('loads face id model')
         self.tracker = YOLO(self.cfgs.MODEL.BODY.weight)
-        print('loaded track model')
+        print('loads track model')
+        self.logger.info('loads track model')
         if self.cfgs.MODEL.BODY.with_reid:
             if self.cfgs.MODEL.BODY.reid_encoder is not None:
                 ckpt = torch.load(self.cfgs.MODEL.BODY.reid_encoder)
@@ -193,7 +205,8 @@ class ModelHandler:
                 input_size=input_size,
                 weights_path=self.cfgs.MODEL.BODY.reid_encoder)
 
-            print('loaded reid model')
+            print('loads reid model')
+            self.logger.info('loads reid model')
         else:
             self.reid_encoder = None
 
@@ -201,7 +214,8 @@ class ModelHandler:
             self.cfgs.MODEL.BEHAVIOR.cfg,
             self.cfgs.MODEL.BEHAVIOR.weight,
             device=self.DEVICE)
-        print('loaded behavior model')
+        print('loads behavior model')
+        self.logger.info('loads behavior model')
         behavior_cfg = Config.fromfile(self.cfgs.MODEL.BEHAVIOR.cfg)
         test_pipeline_cfg = behavior_cfg.test_pipeline
         self.behavior_test_pipeline = Compose(test_pipeline_cfg)
@@ -210,15 +224,16 @@ class ModelHandler:
             config=self.cfgs.MODEL.POSE.cfg,
             checkpoint=self.cfgs.MODEL.POSE.weight,
             device=self.DEVICE)
-        print('loaded pose model')
+        print('loads pose model')
+        self.logger.info('loads pose model')
 
     def Face(self, body_area):
         face_reasutl = self.face(body_area,
                                  device=self.DEVICE,
                                  verbose=False,
-                                 # stream=True,
-                                 conf=0.95,
-                                 stream_buffer=True)
+                                 # conf=0.75
+                                 )
+        self.logger.info('Face detect')
 
         return face_reasutl
 
@@ -228,7 +243,7 @@ class ModelHandler:
         face_name = predict[0]['sample']['img_path'].split('/')[-2] \
             if '/' in predict[0]['sample']['img_path'] \
             else predict[0]['sample']['img_path'].split('\\')[-2]
-
+        self.logger.info(f'Face id recognize [{face_name}] [{face_score}]')
         return face_name, face_score
 
     def Track(self, img):
@@ -238,19 +253,21 @@ class ModelHandler:
             verbose=False,
             persist=True,
             stream=True,
-            iou=0.65,
             encoder=self.reid_encoder,
             with_reid=self.cfgs.MODEL.BODY.with_reid,
             frame_rate=self.fps)
 
-        try:
-            for result in track_result:
-                if result.boxes.shape[0] == 0:
-                    return None
-                track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
-                return track_box.cpu().numpy()
-        except:
-            return None
+        for result in track_result:
+            return result.boxes.xyxy, result.boxes.id
+        self.logger.info('Body track')
+        # try:
+        #     for result in track_result:
+        #         if result.boxes.shape[0] == 0:
+        #             return None
+        #         track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
+        #         return track_box.cpu().numpy()
+        # except:
+        #     return None
 
     def Pose(self, frame_paths, det_results: List[np.ndarray]):
         new_instance_name = f'mmpose-{datetime.datetime.now()}'
@@ -263,6 +280,7 @@ class ModelHandler:
             frame_paths,
             det_results[0][..., :4],
             bbox_format='xyxy')
+        self.logger.info('Pose estimate')
         pose_data_sample = merge_data_samples(pose_data_samples)
         pose_data_sample.dataset_meta = self.pose.dataset_meta
         # make fake pred_instances
@@ -292,6 +310,7 @@ class ModelHandler:
         pose_list = self.behavior_label
         pose_name = pose_list[max_pred_index]
         pose_prob = round(outputs.pred_score[max_pred_index].item(), 2)
+        self.logger.info('Behavior recognize')
 
         return pose_name, pose_prob
 
@@ -459,17 +478,10 @@ class ModelHandler:
 
         return results
 
-    # def get_frame(self):
-    #     while self.processed_frame_qeue:
-    #         try:
-    #             frame, frame_coordinates, data_sample = self.processed_frame_qeue.popleft()
-    #             return frame, frame_coordinates, data_sample
-    #         except:
-    #             return None, None, None
-
 
 class ModelTRTHandler(ModelHandler):
-    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps):
+    def __init__(self, configs, frame_shape, behavior_label, DataManager, fps, logger):
+        self.logger = logger
         self.cfgs = configs
         self.fps = fps
         self.frame_shape = frame_shape
@@ -486,8 +498,6 @@ class ModelTRTHandler(ModelHandler):
         self.pose_results_splited = None
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
-        # self.processed_frame_qeue = queue.Queue(maxsize=500)
-        # self.processed_frame_qeue = deque(maxlen=3000)
 
     def process_frame(self,
                       frame,
@@ -527,19 +537,22 @@ class ModelTRTHandler(ModelHandler):
                     self.behavior_prob,
                     time_tag)
                 self.track_bboxes = None
-        # self.processed_frame_qeue.append((frame, self.frame_coordinates, self.data_sample))
         return frame, self.frame_coordinates, self.data_sample
-
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.trt_engine, task='detect')
-        print('loaded face detect model')
+        print('loads face detect model')
+        self.logger.info('loads face detect model')
+
+        new_instance_name = f'mmpretrain-{datetime.datetime.now()}'
+        DefaultScope.get_instance(new_instance_name, scope_name='mmpretrain')
         self.faceid = FaceidInferencerTRT(
             model_cfg=self.cfgs.MODEL.FACEID.cfg,
             image_encoder=self.cfgs.MODEL.FACEID.trt_engine,
             prototype=self.cfgs.MODEL.FACEID.prototype,
             prototype_cache=self.cfgs.MODEL.FACEID.prototype_cache)
-        print('loaded face id model')
+        print('loads face id model')
+        self.logger.info('loads face id model')
         self.tracker = YOLO(self.cfgs.MODEL.BODY.trt_engine, task='detect')
         if self.cfgs.MODEL.BODY.with_reid:
             # input_size = (self.frame_shape[0], self.frame_shape[1])
@@ -551,7 +564,8 @@ class ModelTRTHandler(ModelHandler):
             self.reid_encoder = ReIDEncoder(input_size=input_size,
                                             # weights_path=self.cfgs.MODEL.BODY.r_e_trt_engine)
                                             weights_path=self.cfgs.MODEL.BODY.reid_encoder)
-            print('loaded reid model')
+            print('loads reid model')
+            self.logger.info('loads reid model')
         else:
             self.reid_encoder = None
 
@@ -559,7 +573,8 @@ class ModelTRTHandler(ModelHandler):
             self.cfgs.MODEL.BEHAVIOR.cfg,
             self.cfgs.MODEL.BEHAVIOR.weight,
             device=self.DEVICE)
-        print('loaded behavior model')
+        print('loads behavior model')
+        self.logger.info('loads behavior model')
         behavior_cfg = Config.fromfile(self.cfgs.MODEL.BEHAVIOR.cfg)
         test_pipeline_cfg = behavior_cfg.test_pipeline
         self.behavior_test_pipeline = Compose(test_pipeline_cfg)
@@ -569,7 +584,8 @@ class ModelTRTHandler(ModelHandler):
             deploy_cfg=self.cfgs.MODEL.POSE.deploy_cfg,
             backend_files=[self.cfgs.MODEL.POSE.trt_engine],
             device=self.DEVICE)
-        print('loaded pose model')
+        print('loads pose model')
+        self.logger.info('loads pose model')
 
     def Pose(self, frame_paths, det_results: List[np.ndarray]):
 
@@ -586,6 +602,7 @@ class ModelTRTHandler(ModelHandler):
             det_results[0][..., :4],
             bbox_format='xyxy',
             model_cfg=self.cfgs.MODEL.POSE.cfg,)
+        self.logger.info('Pose estimate')
         pose_data_sample = merge_data_samples(pose_data_samples)
         pose_data_sample.dataset_meta = self.dataset_meta
         # make fake pred_instances

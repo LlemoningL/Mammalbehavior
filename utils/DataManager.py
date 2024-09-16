@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from utils.util import bind_faceid_trackid, line_info
+from utils.util import bind_faceid_trackid
 from pathlib import Path
 
 
@@ -25,10 +25,11 @@ class DataManager:
         else:
             self.pose_results[id].extend(pose_result)
 
-    def update_faceid_trackid(self, face_name, track_id):
+    def update_faceid_trackid(self, face_name, track_id, frame_id):
         face_name, self.faceid_trackid = bind_faceid_trackid(face_name,
                                                              track_id,
-                                                             self.faceid_trackid)
+                                                             self.faceid_trackid,
+                                                             frame_id)
 
         return face_name
 
@@ -72,6 +73,43 @@ class DataManager:
                                   encoding='utf_8_sig')
             self.Frameinfo = self.make_data_dict()
         self.is_first_save = False
+
+    def save_data_split(self):
+        """
+            Args:
+                file: dataframe including information of  face id, tack id, frame id, time_stamp
+                and behavior types.
+                face_tarckid: dictionary of bound face id and track id list
+            """
+        csv_dict = dict()
+        csvframe = pd.read_csv(self.csv_path)
+        print(csvframe.head())
+        # filtering data that contains '_', it is no bound data
+        tempframe = csvframe.loc[csvframe['Face_id'] == '_'].copy()
+        # filtering data according to face id
+        for i, l in self.faceid_trackid.items():
+            print(f'split csv file for {i}')
+            if i not in csv_dict:
+                faceidtemp = csvframe.loc[csvframe['Face_id'] == i].copy()
+                csv_dict[i] = faceidtemp
+            # filtering track id that contained in face id data in tempframe
+            for j in l.keys():
+                result = csv_dict[i]['Track_id'].isin([j])
+                if result.any():
+                    mid_ = tempframe.loc[tempframe['Track_id'] == j].copy()
+                    # rename '_' to bound face id
+                    mid_['Face_id'] = mid_['Face_id'].apply(lambda x: i)
+                    # concate face id data and filtered data in tempframe
+                    csv_dict[i] = pd.concat([csv_dict[i], mid_])
+                    # delet filtered data in tempframe
+                    tempframe.drop(index=tempframe[tempframe['Track_id'].isin([j]) == True].index, inplace=True)
+            # sorting data with column 'Time_stamp'
+            faceidtemp.sort_values('Time_stamp', inplace=True)
+            # writing face id data to specific csv
+            faceidtemp.to_csv(self.csv_path.parent / f'{self.csv_path.stem}_{i}.csv', lineterminator="\n", header=True,
+                              index=False, mode='a',
+                              encoding='utf_8_sig')
+        print('csv file saved')
 
     def update_label_text(self, text_dict, face_name, track_id, behavior_cls=None, behavior_prob=None):
 

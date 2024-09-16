@@ -1,6 +1,6 @@
 import os.path as osp
 from copy import deepcopy
-from mmengine.config import Config, ConfigDict, DictAction
+from mmengine.config import Config, ConfigDict
 from mmengine.registry import RUNNERS
 from mmengine.utils import digit_version
 from mmengine.utils.dl_utils import TORCH_VERSION
@@ -166,7 +166,8 @@ class TRAINER:
         runner.train()
 
     def yolo(self):
-        model = YOLO('yolov8.yaml').load('yolov8m.pt')
+        # model = YOLO('yolov8.yaml').load('yolov8m.pt')
+        model = YOLO('yolov8m.pt')
         if self.args.resume == 'auto':
             self.cfg.resume = True
         model.train(data=self.cfg,

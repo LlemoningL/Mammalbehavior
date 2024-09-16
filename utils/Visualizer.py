@@ -2,11 +2,9 @@ import warnings
 import mmengine
 from typing import Optional
 from mmengine.config import Config
-# from ..dependencies.mmaction2.mmaction.registry import VISUALIZERS
 from mmaction.registry import VISUALIZERS
 from mmpose.datasets.datasets.utils import parse_pose_metainfo
 from utils.util import vis_box, visualize_frame, show_img
-
 
 
 class Visualizer:

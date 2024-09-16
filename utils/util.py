@@ -2,44 +2,18 @@ import random
 import pandas as pd
 import seaborn as sns
 import cv2
+import math
 import matplotlib.font_manager as fm
-import numpy as np
 import matplotlib.pyplot as plt
+from mmpretrain import ImageRetrievalInferencer
+from typing import Union
+import numpy as np
 import torch
+from mmengine.config import Config
+from mmengine.model import BaseModel
 from PIL import Image, ImageDraw, ImageFont
 
 plt.rcParams['font.sans-serif'] = ['AR PL UMing CN']
-
-from mmpretrain import ImageRetrievalInferencer
-from mmengine.model import BaseModel
-from pathlib import Path
-from typing import Callable, List, Optional, Union
-
-import numpy as np
-import torch
-from mmcv.image import imread
-from mmengine.config import Config
-from mmengine.dataset import BaseDataset, Compose, default_collate
-
-from mmpretrain.registry import TRANSFORMS
-from mmpretrain.structures import DataSample
-# from .base import BaseInferencer, InputType, ModelType
-from abc import abstractmethod
-from math import ceil
-from typing import Callable, Iterable, List, Optional, Tuple, Union
-
-import numpy as np
-import torch
-from mmengine.config import Config
-from mmengine.dataset import default_collate
-from mmengine.fileio import get_file_backend
-from mmengine.model import BaseModel
-from mmengine.runner import load_checkpoint
-
-from mmpretrain.structures import DataSample
-from mmpretrain.utils import track
-# from ..dependencies.mmpretrain.mmpretrain.apis.model import get_model, list_models
-# from ..dependencies.mmpretrain.mmpretrain.apis.model import get_model, list_models
 
 
 ModelType = Union[BaseModel, str, Config]
@@ -107,6 +81,7 @@ class FaceidInferencer(ImageRetrievalInferencer):
             pretrained=pretrained,
             device=device,
             **kwargs)
+
 
         self.prototype_dataset = self._prepare_prototype(
             prototype, prototype_cache, prepare_batch_size)
@@ -334,118 +309,117 @@ def split_xyxy(cord_xyxy):
     return x1, y1, x2, y2
 
 
-# def calculate_box_dis(big_box, small_box):
-#     # Calculate the top center coordinates of the large box
-#     if isinstance(big_box, torch.Tensor):
-#         big_box = big_box.cpu().numpy()
-#     if isinstance(small_box, torch.Tensor):
-#         small_box = small_box.cpu().numpy()
-#     if isinstance(big_box, np.ndarray):
-#         top_center = big_box[:2] + big_box[2:] / 2
-#         # Calculate the center point coordinates of each small box
-#         center1 = (small_box[0] + small_box[2]) / 2, (small_box[1] + small_box[3]) / 2
-#         # Calculate the distance from the center of the small box to the top center of the large box
-#         distance = np.sqrt((center1[0] - top_center[0]) ** 2 + (center1[1] - top_center[1]) ** 2)
-#     else:
-#         raise ValueError(f'{big_box} must be numpy.ndarray, but got {type(big_box)}')
-#
-#     return distance
-
-
-# def select_box(box_list):
-#     min_dis = 6000
-#     for i in box_list:
-#         min_d = i[0]
-#         if min_d < min_dis:
-#             min_dis = min_d
-#             box_coord = i[1]
-#
-#     return box_coord
-# def bind_faceid_trackid(face_name: str, track_id: int, faceid_trackid: dict):
+# def bind_faceid_trackid0(face_name: str, track_id: int, faceid_trackid: dict) -> tuple: # renew
 #     """
+#     绑定面部ID和追踪ID。
+#
 #     Args:
-#         face_name: face id
-#         track_id: track id
-#         faceid_trackid: dictionary of bound face id and track id list
+#     face_name: 面部ID
+#     track_id: 追踪ID
+#     faceid_trackid: 面部ID和追踪ID列表的字典
 #
-#     Returns: face id and dictionary of bound face id and track id
+#     Returns:
+#     tuple: (面部ID, 更新后的faceid_trackid字典)
 #     """
-#     track_idlist = list()
-#     # check first time when get face id and faceid_trackid is empty
-#     if not len(faceid_trackid) > 0 and face_name is not None:
-#         faceid_trackid[face_name] = list()
-#         faceid_trackid[face_name].append(track_id)
-#     # get track id no duplicates
-#     if len(faceid_trackid) > 0:
-#         for k, v in faceid_trackid.items():
-#             track_idlist.extend(v)
-#     # face id is not empty(not None)
-#     if face_name is not None:
-#         # new face id and track id
-#         if face_name not in faceid_trackid and track_id not in track_idlist:
-#             faceid_trackid[face_name] = list()
-#             faceid_trackid[face_name].append(track_id)
-#         # exist face id and new track id
-#         elif face_name in faceid_trackid and track_id not in track_idlist:
-#             faceid_trackid[face_name].append(track_id)
-#         # new face id and exist track id, keep nwe face id
-#         elif face_name not in faceid_trackid and track_id in track_idlist:
-#             faceid_trackid[face_name] = list()
-#         # otherwise do this
-#         else:
-#             # use track id to find bound face id if exist
-#             for k, v in faceid_trackid.items():
-#                 if track_id in track_idlist and track_id in v:
-#                     face_name = k
-#     # face id is empty, use track id to find bound face id if exist
-#     else:
-#         for k, v in faceid_trackid.items():
-#             if track_id in track_idlist and track_id in v:
-#                 face_name = k
-#                 # return face_name, faceid_trackid
 #
-#     # when face id is empty(is None), set face id as '_'
+#     # 如果face_name为None，尝试通过track_id找到对应的face_name
 #     if face_name is None:
-#         face_name = '_'
+#         for k, v in faceid_trackid.items():
+#             if track_id in v:
+#                 return k, faceid_trackid
+#         return '_', faceid_trackid  # 如果没找到对应的face_name，返回'_'
+#
+#     # 获取所有已存在的track_id
+#     all_track_ids = [tid for ids in faceid_trackid.values() for tid in ids]
+#
+#     # 处理face_name不为None的情况
+#     if face_name not in faceid_trackid:
+#         faceid_trackid[face_name] = []
+#
+#     if track_id not in all_track_ids:
+#         faceid_trackid[face_name].append(track_id)
+#     elif track_id not in faceid_trackid[face_name]:
+#         # 如果track_id已存在于其他face_name下，需要移除
+#         for k, v in faceid_trackid.items():
+#             if track_id in v:
+#                 v.remove(track_id)
+#         faceid_trackid[face_name].append(track_id)
 #
 #     return face_name, faceid_trackid
 
 
-def bind_faceid_trackid(face_name: str, track_id: int, faceid_trackid: dict) -> tuple: # renew
-    """
-    绑定面部ID和追踪ID。
+def calculate_stability(consecutive_detections, max_stability=10):
+    # 使用对数函数实现非线性增长
+    return min(max_stability * math.log(consecutive_detections + 1) / math.log(51), max_stability)
 
-    Args:
-    face_name: 面部ID
-    track_id: 追踪ID
-    faceid_trackid: 面部ID和追踪ID列表的字典
 
-    Returns:
-    tuple: (面部ID, 更新后的faceid_trackid字典)
-    """
-
-    # 如果face_name为None，尝试通过track_id找到对应的face_name
+def bind_faceid_trackid(face_name, track_id, faceid_trackid, frame_id, frame_interval=5, max_stability=10):
+    # 如果face_name为None,尝试查找已存在的绑定
     if face_name is None:
         for k, v in faceid_trackid.items():
             if track_id in v:
                 return k, faceid_trackid
-        return '_', faceid_trackid  # 如果没找到对应的face_name，返回'_'
+        return '_', faceid_trackid
 
-    # 获取所有已存在的track_id
-    all_track_ids = [tid for ids in faceid_trackid.values() for tid in ids]
-
-    # 处理face_name不为None的情况
+    # 确保face_name在faceid_trackid中存在
     if face_name not in faceid_trackid:
-        faceid_trackid[face_name] = []
+        faceid_trackid[face_name] = {}
 
-    if track_id not in all_track_ids:
-        faceid_trackid[face_name].append(track_id)
-    elif track_id not in faceid_trackid[face_name]:
-        # 如果track_id已存在于其他face_name下，需要移除
-        for k, v in faceid_trackid.items():
-            if track_id in v:
-                v.remove(track_id)
-        faceid_trackid[face_name].append(track_id)
+    # 检查是否存在冲突的绑定
+    conflicting_bindings = [k for k, v in faceid_trackid.items() if track_id in v and k != face_name]
+
+    # 如果存在冲突的绑定
+    if conflicting_bindings:
+        current_binding = {
+            'face_name': face_name,
+            'last_frame': frame_id,
+            'stability': calculate_stability(1, max_stability),
+            'consecutive_detections': 1
+        }
+
+        max_stability_binding = None
+        max_stability_value = 0
+
+        # 找出稳定性最高的绑定
+        for conflicting_face in conflicting_bindings:
+            conflicting_binding = faceid_trackid[conflicting_face][track_id]
+            frame_diff = (frame_id - conflicting_binding['last_frame']) // frame_interval
+            if frame_diff <= 1:
+                conflicting_binding['consecutive_detections'] += 1
+            else:
+                conflicting_binding['consecutive_detections'] = 1
+            conflicting_binding['stability'] = calculate_stability(conflicting_binding['consecutive_detections'],
+                                                                   max_stability)
+
+            if conflicting_binding['stability'] > max_stability_value:
+                max_stability_value = conflicting_binding['stability']
+                max_stability_binding = conflicting_face
+
+        # 如果现有绑定的稳定性更高,保留该绑定
+        if max_stability_binding and max_stability_value >= current_binding['stability']:
+            faceid_trackid[max_stability_binding][track_id]['last_frame'] = frame_id
+            return max_stability_binding, faceid_trackid
+
+        # 否则,移除所有冲突的绑定
+        for conflicting_face in conflicting_bindings:
+            faceid_trackid[conflicting_face].pop(track_id)
+
+    # 更新或添加绑定
+    if track_id not in faceid_trackid[face_name]:
+        faceid_trackid[face_name][track_id] = {
+            'last_frame': frame_id,
+            'stability': calculate_stability(1, max_stability),
+            'consecutive_detections': 1
+        }
+    else:
+        existing_binding = faceid_trackid[face_name][track_id]
+        frame_diff = (frame_id - existing_binding['last_frame']) // frame_interval
+        if frame_diff <= 1:
+            existing_binding['consecutive_detections'] += 1
+        else:
+            existing_binding['consecutive_detections'] = 1
+        existing_binding['stability'] = calculate_stability(existing_binding['consecutive_detections'], max_stability)
+        existing_binding['last_frame'] = frame_id
 
     return face_name, faceid_trackid
 
@@ -471,7 +445,6 @@ def line_info(face_name,
 
 def vis_box(img, coordinate_dict, id_bbox_colors, line_thickness, padding):
 
-
     for k, v in coordinate_dict.items():
         track_id = k
         body_coord = v[0]
@@ -481,12 +454,12 @@ def vis_box(img, coordinate_dict, id_bbox_colors, line_thickness, padding):
         body_x1, body_y1, body_x2, body_y2 = split_xyxy(body_coord)
         body_area = img[body_y1:body_y2, body_x1:body_x2]
 
-        if face_result[0].boxes.shape[0] != 0:
+        if face_result is not None and face_result[0].boxes.shape[0] != 0:
             face_xyxy = face_result[0].boxes.xyxy[0]
             plot_one_box(face_xyxy,
                          body_area,
                          color=color,
-                         line_thickness=line_thickness,
+                         line_thickness=line_thickness - 1,
                          padding=padding)
             # img[body_y1:body_y2, body_x1:body_x2] = body_area
 
@@ -494,5 +467,20 @@ def vis_box(img, coordinate_dict, id_bbox_colors, line_thickness, padding):
                            img,
                            label=label_text,
                            color=color,
-                           line_thickness=3)
+                           line_thickness=line_thickness)
     return img
+
+
+def is_boxid(box, id, data):
+    if box.shape[0] == 0:
+        return None
+    if id is not None:
+        return torch.cat([box, id.view(-1, 1)], dim=-1).cpu().numpy()
+    elif data:
+        if box.shape[0] == len(data.keys()):
+            _ids = np.array(list(data.keys()))
+            return np.hstack([box.cpu().numpy(), _ids.reshape(-1, 1)])
+        else:
+            return None
+    else:
+        return None
