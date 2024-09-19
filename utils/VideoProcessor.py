@@ -87,9 +87,7 @@ class VideoProcessor:
         self.show_frame = show
         self.executor.submit(self.process_frames)
         if self.show_frame or self.save_vid:
-            self.logger_d = create_logger(str(self.log_output), name='D', log_name='display_frames')
             self.executor.submit(self.display_frames)
-            self.logger_d.info('Thread display frames start...')
         if self.save_vid:
             self.videoWriter = imageio.get_writer(
                 str(self.save_name),
@@ -100,16 +98,11 @@ class VideoProcessor:
                 mode='I',
                 pixelformat='yuv420p'
             )
-            self.logger_w = create_logger(str(self.log_output), name='W', log_name='write_frames')
             self.executor.submit(self.write_frames)
-            self.logger_w.info('Thread write frames start...')
 
         # 等待所有任务完成
         self.executor.shutdown(wait=True)
         self.logger_p.info('All thread finish')
-        while self.is_processing and not self.write_queue.empty():
-            time.sleep(0.01)
-        self.logger_p.info('Wating for video writing')
         self.cleanup()
 
     def process_frames(self):
@@ -176,19 +169,15 @@ class VideoProcessor:
             self.DataManager.save_data_split()
             if self.show_frame or self.save_vid:
                 while not self.processed_frame_qeue.empty():
-                    # self.logger_p.info(f'Wating for processed_frame_qeue empty, '
-                    #                    f'{self.processed_frame_qeue.qsize()} left')
                     time.sleep(0.01)
             else:
                 while not self.processed_frame_qeue.empty():
                     self.processed_frame_qeue.get()
-                    # self.logger_p.info(f'Wating for processed_frame_qeue empty, '
-                    #                    f'{self.processed_frame_qeue.qsize()} left')
         finally:
             self.logger_p.info(f'All frames processed')
             self.is_processing = False
-            self.logger_p(f'self.is_processing [{self.is_processing}]')
             self.cap.release()
+
 
     def show_fps(self):
         self.timestamps.append(time.time())
@@ -206,6 +195,7 @@ class VideoProcessor:
         cv2.destroyAllWindows()
         print('all done')
         self.logger_p.info('all done')
+        time.sleep(1)
         print('-' * 20 + '\n')
 
     def write_frames(self):
@@ -214,11 +204,9 @@ class VideoProcessor:
                 frame = self.write_queue.get()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.videoWriter.append_data(frame)
-                self.logger_w.info(f'Writing frame, {self.write_queue.qsize()} left')
 
             except queue.Empty:
                 time.sleep(0.01)
-                self.logger_w.info(f'Writing for frame')
                 continue
 
     def display_frames(self):
@@ -236,10 +224,8 @@ class VideoProcessor:
                 data_sample)
             if self.show_frame:
                 self.Visualizer.show(frame)
-                self.logger_d.info(f'Displayed frame, {self.processed_frame_qeue.qsize()} left')
             if self.save_vid:
                 self.write_queue.put(frame)
-                self.logger_w.info(f'Add frame')
 
     def color(self, track_ids):
         bbox_colors = get_color(track_ids)

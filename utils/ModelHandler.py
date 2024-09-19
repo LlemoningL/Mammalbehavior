@@ -56,17 +56,6 @@ class ModelHandler:
 
         if frame_tag:
             _box, _id = self.Track(frame)
-            # def is_boxid(box, id, data):
-            #     if id is not None:
-            #         return np.hstack([box, id])
-            #     elif data:
-            #         if box.shape[0] == len(data.keys()):
-            #             _ids = np.array(data.keys())
-            #             return np.hstack([box, _ids])
-            #         else:
-            #             return None
-            #     else:
-            #         return None
             self.track_bboxes = is_boxid(_box, _id, self.frame_coordinates)
 
         if time_tag:
@@ -146,6 +135,9 @@ class ModelHandler:
                 box,
                 face_result,
                 text)
+        self.logger.info(f'Frame [{current_frame_id}], '
+                         f'Time stamp [{current_frame_time_stamp}], '
+                         f'Info "{text}"')
 
     def process_face(self, body_area, track_bbox, frame_id):
         face_result = self.Face(body_area)
@@ -257,18 +249,9 @@ class ModelHandler:
             with_reid=self.cfgs.MODEL.BODY.with_reid,
             frame_rate=self.fps)
 
+        self.logger.info('Body track')
         for result in track_result:
             return result.boxes.xyxy, result.boxes.id
-        self.logger.info('Body track')
-        # try:
-        #     for result in track_result:
-        #         if result.boxes.shape[0] == 0:
-        #             return None
-        #         track_box = torch.cat([result.boxes.xyxy, result.boxes.id.view(-1, 1)], dim=-1)
-        #         return track_box.cpu().numpy()
-        # except:
-        #     return None
-
     def Pose(self, frame_paths, det_results: List[np.ndarray]):
         new_instance_name = f'mmpose-{datetime.datetime.now()}'
         DefaultScope.get_instance(new_instance_name, scope_name='mmpose')
