@@ -10,7 +10,8 @@ class DataManager:
         self.behavior_label = behavior_label
         self.pose_results = {}
         self.faceid_trackid = {}
-        self.Frameinfo = self.make_data_dict()
+        self.Frameinfo = pd.DataFrame(self.make_data_dict())
+        self.temp_info = self.make_data_dict()
         self.label_text = {}
         self.frame_coordinates = {}
         self.csv_path = Path(output_path) / f'info_{interval}s_{output_path.stem}.csv'
@@ -41,21 +42,43 @@ class DataManager:
                           behavior_cls):
 
         if behavior_cls != '':
-            self.Frameinfo['Face_id'].append(face_name)
-            self.Frameinfo['Track_id'].append(track_id)
-            self.Frameinfo['Frame_id'].append(current_frame_id)
-            self.Frameinfo['Time_stamp'].append(current_frame_time_stamp)
+            self.temp_info['Face_id'].append(face_name)
+            self.temp_info['Track_id'].append(track_id)
+            self.temp_info['Frame_id'].append(current_frame_id)
+            self.temp_info['Time_stamp'].append(current_frame_time_stamp)
             for i in self.labels:
                 if i == behavior_cls.title():
-                    self.Frameinfo[i].append(1)
+                    self.temp_info[i].append(1)
                 else:
-                    self.Frameinfo[i].append(0)
+                    self.temp_info[i].append(0)
+        if len(self.temp_info['Face_id']) > 10:
+            self.temp_info = pd.DataFrame(self.temp_info)
+            for index, row in self.temp_info.iterrows():
+                if row['Face_id'] == '_':
+                    for k, v in self.faceid_trackid.items():
+                        if row['Track_id'] in v:
+                            self.temp_info.loc[index, 'Face_id'] = k
 
-        if len(self.Frameinfo['Frame_id']) % 1000 == 0:
+            self.Frameinfo = pd.concat([self.Frameinfo, self.temp_info], axis=0, ignore_index=True)
+            self.temp_info = self.make_data_dict()
+
+        # if behavior_cls != '':
+        #     self.Frameinfo['Face_id'].append(face_name)
+        #     self.Frameinfo['Track_id'].append(track_id)
+        #     self.Frameinfo['Frame_id'].append(current_frame_id)
+        #     self.Frameinfo['Time_stamp'].append(current_frame_time_stamp)
+        #     for i in self.labels:
+        #         if i == behavior_cls.title():
+        #             self.Frameinfo[i].append(1)
+        #         else:
+        #             self.Frameinfo[i].append(0)
+
+        if not self.Frameinfo.empty and self.Frameinfo.shape[0] % 1000 == 0:
             self.save_generated_data()
 
     def save_generated_data(self):
-        self.Frameinfo = pd.DataFrame(self.Frameinfo)
+        if not isinstance(self.temp_info, pd.DataFrame):
+            self.Frameinfo = pd.DataFrame(self.Frameinfo)
         if self.is_first_save:
             self.Frameinfo.to_csv(self.csv_path,
                                   lineterminator="\n",

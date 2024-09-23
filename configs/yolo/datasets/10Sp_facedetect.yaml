@@ -8,10 +8,11 @@
 
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: /home/gst/lj/24tdisk/ljdata/animalbehavior_about/total_dateset/bodydetect/body_detectcoco2yolo # dataset root dir
+path: path/to/dataset_root  # dataset root dir
 train: images/train  # train images (relative to 'path') 4 images
 val: images/val  # val images (relative to 'path') 4 images
 test: images/test # test images (optional)
+verbose: False
 # Classes
 names:
   0: Black Bear
@@ -24,5 +25,6 @@ names:
   7: Gnu
   8: Brown Bear
   9: Hamadryas Baboon
+
 
 

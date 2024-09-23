@@ -31,7 +31,9 @@ MODEL:
   FACEID:
     cfg: path/to/faceid/resnet50-arcface_8xb32_inshop_custom.py
     weight: path/to/faceid/weight.pth
-    prototype: path/to/faceid/prototype  #  usually is a directory
+    #  [prototype] usually is a directory with one folder for each target,
+    #  folder name being the target's name.
+    prototype: path/to/faceid/prototype
     prototype_cache: path/to/faceid/prototype_cache.pth  # a generated prototype *.pth file
     trt_engine: path/to/faceid/weight_trt.engine
 

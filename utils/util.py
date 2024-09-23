@@ -261,19 +261,23 @@ def get_color(seeds):
 
 
 def visualize_frame(visualizer, frames, data_samples):
-    for d in data_samples:
-        visualizer.add_datasample(
-            'result',
-            frames,
-            data_sample=d,
-            draw_gt=False,
-            draw_heatmap=False,
-            draw_bbox=False,
-            show=False,
-            wait_time=0,
-            out_file=None,
-            kpt_thr=0.3)
-        frames = visualizer.get_image()
+    try:
+        if len(data_samples) > 0:
+            for d in data_samples:
+                visualizer.add_datasample(
+                    'result',
+                    frames,
+                    data_sample=d,
+                    draw_gt=False,
+                    draw_heatmap=False,
+                    draw_bbox=False,
+                    show=False,
+                    wait_time=0,
+                    out_file=None,
+                    kpt_thr=0.3)
+                frames = visualizer.get_image()
+    except:
+        pass
 
     return frames
 
@@ -444,30 +448,34 @@ def line_info(face_name,
 
 
 def vis_box(img, coordinate_dict, id_bbox_colors, line_thickness, padding):
+    try:
+        if coordinate_dict:
+            for k, v in coordinate_dict.items():
+                track_id = k
+                body_coord = v[0]
+                face_result = v[1]
+                label_text = v[2]
+                color = tuple(id_bbox_colors[track_id]) if track_id in id_bbox_colors else None
+                body_x1, body_y1, body_x2, body_y2 = split_xyxy(body_coord)
+                body_area = img[body_y1:body_y2, body_x1:body_x2]
 
-    for k, v in coordinate_dict.items():
-        track_id = k
-        body_coord = v[0]
-        face_result = v[1]
-        label_text = v[2]
-        color = tuple(id_bbox_colors[track_id]) if track_id in id_bbox_colors else None
-        body_x1, body_y1, body_x2, body_y2 = split_xyxy(body_coord)
-        body_area = img[body_y1:body_y2, body_x1:body_x2]
+                if face_result is not None and face_result[0].boxes.shape[0] != 0:
+                    face_xyxy = face_result[0].boxes.xyxy[0]
+                    plot_one_box(face_xyxy,
+                                 body_area,
+                                 color=color,
+                                 line_thickness=line_thickness - 1,
+                                 padding=padding)
+                    # img[body_y1:body_y2, body_x1:body_x2] = body_area
 
-        if face_result is not None and face_result[0].boxes.shape[0] != 0:
-            face_xyxy = face_result[0].boxes.xyxy[0]
-            plot_one_box(face_xyxy,
-                         body_area,
-                         color=color,
-                         line_thickness=line_thickness - 1,
-                         padding=padding)
-            # img[body_y1:body_y2, body_x1:body_x2] = body_area
+                img = plot_one_box(body_coord,
+                                   img,
+                                   label=label_text,
+                                   color=color,
+                                   line_thickness=line_thickness)
+    except:
+        pass
 
-        img = plot_one_box(body_coord,
-                           img,
-                           label=label_text,
-                           color=color,
-                           line_thickness=line_thickness)
     return img
 
 

@@ -74,11 +74,11 @@ class VideoProcessor:
         self.processed_frame_qeue = queue.Queue(maxsize=max_queue_len)
         self.write_queue = queue.Queue(maxsize=max_queue_len)
         self.is_processing = True
-        self.executor = ThreadPoolExecutor(max_workers=3)  # 创建线程池
+        self.executor = ThreadPoolExecutor(max_workers=4)  # 创建线程池
         self.show_fps_ = False
         self.show_frame = False
         self.id_bbox_colors = dict()
-        self.id_bbox_colors = self.color([i for i in range(0, 200)])
+        self.id_bbox_colors = self.color([i for i in range(0, 500)])
 
     def process_video(self, show=False, save_vid=False, show_fps=False):
         print('\n' + '-' * 20)
@@ -100,8 +100,11 @@ class VideoProcessor:
             )
             self.executor.submit(self.write_frames)
 
+        self.executor.submit(self.send_termination_signals)
+
         # 等待所有任务完成
         self.executor.shutdown(wait=True)
+        # self.executor.submit(self.send_termination_signals)
         self.logger_p.info('All thread finish')
         self.cleanup()
 
@@ -177,7 +180,15 @@ class VideoProcessor:
             self.logger_p.info(f'All frames processed')
             self.is_processing = False
             self.cap.release()
+            self.processed_frame_qeue.put((None, None, None))  # 发送终止信号
 
+    def send_termination_signals(self):
+        # 在主线程中等待所有帧处理完毕后发送终止信号
+        self.executor.shutdown(wait=True)
+        if self.save_vid:
+            self.write_queue.put(None)  # 发送终止信号
+        if self.show_frame or self.save_vid:
+            self.processed_frame_qeue.put((None, None, None))  # 发送终止信号
 
     def show_fps(self):
         self.timestamps.append(time.time())
@@ -202,17 +213,24 @@ class VideoProcessor:
         while self.is_processing or not self.write_queue.empty():
             try:
                 frame = self.write_queue.get()
+                if frame is None:  # 接收终止信号
+                    break
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.videoWriter.append_data(frame)
 
             except queue.Empty:
                 time.sleep(0.01)
                 continue
+        self.videoWriter.close()  # 关闭视频写入器
 
     def display_frames(self):
         while self.is_processing or not self.processed_frame_qeue.empty():
             try:
                 frame, frame_coordinates, data_sample = self.processed_frame_qeue.get()
+                if frame is None:  # 接收终止信号
+                    self.write_queue.put(None)
+                    cv2.destroyAllWindows()
+                    break
             except queue.Empty:
                 time.sleep(0.01)
                 continue

@@ -41,9 +41,10 @@ class ModelHandler:
         self.behavior_prob = ''
         self.DataManager = DataManager
         self.data_sample = []
-        self.frame_coordinates = dict()
+        self.frame_coordinates = {}
+        self.undetected_counts = {}
         self.pose_results_splited = None
-        self.id_bbox_colors = dict()
+        self.id_bbox_colors = {}
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
         self.text_dict = {}
 
@@ -83,7 +84,11 @@ class ModelHandler:
                     self.behavior_cls,
                     self.behavior_prob,
                     time_tag)
-                self.track_bboxes = None
+                # self.track_bboxes = None
+
+        self.update_tracking(self.track_bboxes, frame_tag)
+        self.track_bboxes = None
+
         return frame, self.frame_coordinates, self.data_sample
 
     def process_single_object(self,
@@ -97,7 +102,7 @@ class ModelHandler:
                               time_tag
                               ):
         pose_result, data_sample = self.Pose(frame,
-                                                  [track_bbox])
+                                             [track_bbox])
         self.data_sample.extend(data_sample)
         id = int(track_id)
         box = track_bbox[:, 0:4][0]
@@ -168,6 +173,31 @@ class ModelHandler:
         self.frame_coordinates[int(track_id)] = [body_result, face_result, label_text]
 
         return self.frame_coordinates
+
+    def update_tracking(self, new_track_bboxes, frame_tag=False):
+        new_tracks_dict = {}
+
+        if new_track_bboxes is not None:
+            # 将新的跟踪结果转换为字典格式
+            new_tracks_dict = {int(bbox[4]): bbox[:4] for bbox in new_track_bboxes}
+
+        if new_tracks_dict and frame_tag:
+            # 增加未检测到的目标的计数
+            for track_id in list(self.frame_coordinates.keys()):
+                if track_id not in new_tracks_dict:
+                    self.undetected_counts[track_id] = self.undetected_counts.get(track_id, 0) + 1
+                else:
+                    self.undetected_counts[track_id] = 0
+        else:
+            # 在非检测帧中，增加所有目标的计数
+            for track_id in self.frame_coordinates.keys():
+                self.undetected_counts[track_id] = self.undetected_counts.get(track_id, 0) + 1
+
+        # 清除长时间未检测到的目标
+        for track_id in list(self.undetected_counts.keys()):
+            if self.undetected_counts[track_id] >= 7:
+                self.frame_coordinates.pop(track_id, None)
+                self.undetected_counts.pop(track_id, None)
 
     def init_model(self):
         self.face = YOLO(self.cfgs.MODEL.FACE.weight)
@@ -490,7 +520,8 @@ class ModelTRTHandler(ModelHandler):
                       current_frame_time_stamp):
 
         if frame_tag:
-            self.track_bboxes = self.Track(frame)
+            _box, _id = self.Track(frame)
+            self.track_bboxes = is_boxid(_box, _id, self.frame_coordinates)
 
         if time_tag:
             self.pose_results_splited = self.DataManager.split_pose_result()
@@ -519,7 +550,9 @@ class ModelTRTHandler(ModelHandler):
                     self.behavior_cls,
                     self.behavior_prob,
                     time_tag)
-                self.track_bboxes = None
+
+        self.update_tracking(self.track_bboxes, frame_tag)
+        self.track_bboxes = None
         return frame, self.frame_coordinates, self.data_sample
 
     def init_model(self):
