@@ -272,6 +272,10 @@ class ModelHandler:
         track_result = self.tracker.track(
             source=img,
             device=self.DEVICE,
+            imgsz=1088,
+            # imgsz=736,
+            # conf=0.75,
+            # iou=0.4,
             verbose=False,
             persist=True,
             stream=True,

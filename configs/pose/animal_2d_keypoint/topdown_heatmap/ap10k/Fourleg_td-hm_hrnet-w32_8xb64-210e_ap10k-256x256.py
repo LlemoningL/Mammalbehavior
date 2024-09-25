@@ -189,7 +189,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/keypoints_train.json',
+        ann_file='annotations/train.json',
         data_prefix=dict(img='train/'),
         pipeline=train_pipeline,
     ))
@@ -203,7 +203,7 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_mode=data_mode,
-        ann_file='annotations/keypoints_val.json',
+        ann_file='annotations/val.json',
         data_prefix=dict(img='val/'),
         test_mode=True,
         pipeline=val_pipeline,
