@@ -23,7 +23,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
- <a href="https://github.com/othneildrew/Best-README-Template">
+ <a>
     <img src="images/pipeline.png" alt="Logo" width="auto" height="600">
   </a>
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
