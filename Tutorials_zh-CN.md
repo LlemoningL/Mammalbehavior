@@ -80,6 +80,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     #  bounding class and id with dict
     
+    # switch dict to your own label, coco classes start from index 1
+    # class_name_dict = {'Obj': 1, 'Obj': 2, , 'Obj': 2, ...}
 
     class_name_dict = {'Black Bear': 1, 'Ring-tailed Lemur': 2, 'Golden Monkey': 3, 'Tiger': 4,
                        'Takin': 5,'Lechwe': 6, 'Zebra': 7, 'Gnu': 8, 'Brown Bear': 9, 'Hamadryas Baboon': 10}

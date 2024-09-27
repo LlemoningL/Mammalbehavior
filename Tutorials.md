@@ -555,7 +555,7 @@ python main.py configs/inference_cfg.yaml {video} --target_type {target_type} --
 
 
 
-<p align="right">(<a href="#readme-top">返回顶部</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 

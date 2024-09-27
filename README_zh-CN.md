@@ -24,7 +24,7 @@
 <br />
 <div align="center">
  <a>
-    <img src="images/pipeline.png" alt="Logo" width="auto" height="600">
+    <img src="images/pipeline.jpg" alt="Logo" width="auto" height="600">
   </a>
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
 
@@ -64,51 +64,48 @@
 
 <!-- ABOUT THE PROJECT -->
 ## 关于项目
+<table align="center">
+  <tr>
+    <td>
+      <img src="images/demo (1).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (2).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (3).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+  </tr>
+<tr>
+    <td>
+      <img src="images/demo (4).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (5).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+     <td>
+      <img src="images/demo (6).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+  </tr>
+<tr>
+    <td>
+      <img src="images/demo (7).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
 
-<table align="center">
-  <tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-  </tr>
-<tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
+
   </tr>
 </table>
-<div align="left">
-图片描述
+<div align="center">
+哺乳动物行为识别和测量框架推理演示视频
 </div>
 <br/>
-<table align="center">
-  <tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-  </tr>
-<tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-  </tr>
-</table>
-<div align="left">
-图片描述
-</div>
-<br/>
+
 
 我们提供了一个人工智能框架，可以自动识别和测量大中型哺乳动物的行为。用户可以使用我们提供的工具制作自己的数据集、进行训练和推理。
 
@@ -121,7 +118,7 @@
 
 阅读 [Tutorials_zh-CN.md](Tutorials_zh-CN.md) 可以获得有关准备数据集、训练和推理的更多详细信息。
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">返回顶部</a>)</p>
 
 
 ## 开始
@@ -236,7 +233,7 @@
   ```
 你将在终端中看到推理结果。
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">返回顶部</a>)</p>
 
 #### 步骤6 (可选). 安装 MMdepoly 和 torch2trt。
 我们的框架支持tensorRT加速。如果您想使用它，请按照以下步骤进行安装。
@@ -266,9 +263,11 @@ torch2trt 将 Pytorch 模型转为 tensorRT 文件。. 安装请查看
 
 ## 使用方法
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+#### Demo
+点击 [此处](*待添加*) 下载演示配置文件和权重。
+```python
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+```
 
 <p align="right">(<a href="#readme-top">返回顶部</a>)</p>
 

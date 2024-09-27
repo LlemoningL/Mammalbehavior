@@ -24,7 +24,7 @@
 <br />
 <div align="center">
  <a>
-    <img src="images/pipeline.png" alt="Logo" width="auto" height="600">
+    <img src="images/pipeline.jpg" alt="Logo" width="auto" height="600">
   </a>
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
 
@@ -68,46 +68,45 @@ English | [简体中文](README_zh-CN.md)
 <table align="center">
   <tr>
     <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
+      <img src="images/demo (1).gif" alt="Golden Monkey" width="640" height="auto">
     </td>
     <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
+      <img src="images/demo (2).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (3).gif" alt="Golden Monkey" width="640" height="auto">
     </td>
   </tr>
 <tr>
     <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
+      <img src="images/demo (4).gif" alt="Golden Monkey" width="640" height="auto">
     </td>
     <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
+      <img src="images/demo (5).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+     <td>
+      <img src="images/demo (6).gif" alt="Golden Monkey" width="640" height="auto">
     </td>
   </tr>
+<tr>
+    <td>
+      <img src="images/demo (7).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+    <td>
+      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+    </td>
+
+
+  </tr>
 </table>
-<div align="left">
-figure description
+<div align="center">
+Demo inference video of framework for mammalian behavior recognition and measurement
 </div>
 <br/>
-<table align="center">
-  <tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-  </tr>
-<tr>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-    <td>
-      <img src="images/Golden_Monkey3.jpg" alt="Golden Monkey" width="300" height="auto">
-    </td>
-  </tr>
-</table>
-<div align="left">
-figure description
-</div>
+
 <br/>
 
 We provide an AI framework that enables automatic behavioural recognition and measurement in medium and large mammals. Users can make their own datasets, training, and inference using the tools we provide.
@@ -270,7 +269,7 @@ torch2trt can convert pytorch model to tensorRT engine. Installation please refe
 ## Usage
 
 #### Demo
-Click [here](*待添加*) to download config and checkpoint files.
+Click [here](*待添加*) to download demo config and checkpoint files.
 
 ```python
 

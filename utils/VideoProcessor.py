@@ -11,7 +11,7 @@ from .ModelHandler import ModelHandler, ModelTRTHandler
 from .DataManager import DataManager
 from concurrent.futures import ThreadPoolExecutor
 from utils.util import get_color
-from logger import create_logger
+from utils.logger import create_logger
 
 
 class VideoProcessor:

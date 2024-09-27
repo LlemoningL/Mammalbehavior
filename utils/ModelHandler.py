@@ -272,10 +272,6 @@ class ModelHandler:
         track_result = self.tracker.track(
             source=img,
             device=self.DEVICE,
-            imgsz=1088,
-            # imgsz=736,
-            # conf=0.75,
-            # iou=0.4,
             verbose=False,
             persist=True,
             stream=True,
@@ -511,6 +507,7 @@ class ModelTRTHandler(ModelHandler):
         self.DataManager = DataManager
         self.data_sample = []
         self.frame_coordinates = dict()
+        self.undetected_counts = {}
         self.id_bbox_colors = dict()
         self.pose_results_splited = None
         self.id_bbox_colors = self.color([i for i in range(0, 200)])
