@@ -93,7 +93,7 @@ English | [简体中文](README_zh-CN.md)
       <img src="images/demo (7).gif" alt="image7" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (8).gif" alt="image8" width="300" height="auto">
+      <img src="images/demo (9).gif" alt="image8" width="300" height="auto">
     </td>
     <td>
       <img src="images/demo (8).gif" alt="image9" width="300" height="auto">

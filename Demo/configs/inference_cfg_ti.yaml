@@ -1,0 +1,44 @@
+# Framework configs
+
+MODEL:
+  # path to weight of YOLOv8 detect model
+  FACE:
+    weight: Demo/weights/yolo/Face.pt
+    trt_engine:
+
+  # path to weight of YOLOv8 track model
+  BODY:
+    weight: Demo/weights/yolo/Body.pt
+    trt_engine:
+    reid_encoder:
+    r_e_trt_engine:
+    with_reid:
+
+  # path to config and weight of mmpose model
+  POSE:
+    cfg: Demo/configs/pose/fourleg_td-hm_hrnet-w32_8xb64-210e_ap10k-256x256.py
+    weight: Demo/weights/pose/Pose_fourleg.pth
+    trt_engine:
+    deploy_cfg:
+
+  # path to config and weight of mmaction model
+  BEHAVIOR:
+    cfg: Demo/configs/behavior/ti_slowonly_r50_8xb16-u48-240e_ntu60-xsub-keypoint.py
+    weight:  Demo/weights/behavior/Behavior_ti.pth
+    trt_engine:
+
+  # path to config and weight of mmpretrain model
+  FACEID:
+    cfg: Demo/configs/faceid/resnet50-arcface_8xb32_inshop_faceid.py
+    weight: Demo/weights/faceid/Faceid.pth
+    prototype: Demo/gallery/ti
+    prototype_cache: Demo/faceid_cache/facecache_ti.pth  # a generated prototype *.pth file.
+    trt_engine:
+
+#path to save the output
+OUTPUT:
+  path: 'VideoOutput'
+
+# type of target
+DATA:
+  label: Carnivora  # "Choose one in ["Primates", "Artiodactyla", "Carnivora", "Perissodactyla"]

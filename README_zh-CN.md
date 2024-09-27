@@ -67,35 +67,35 @@
 <table align="center">
   <tr>
     <td>
-      <img src="images/demo (1).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (1).gif" alt="image1" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (2).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (2).gif" alt="image2" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (3).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (3).gif" alt="image3" width="300" height="auto">
     </td>
   </tr>
 <tr>
     <td>
-      <img src="images/demo (4).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (4).gif" alt="image4" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (5).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (5).gif" alt="image5" width="300" height="auto">
     </td>
      <td>
-      <img src="images/demo (6).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (6).gif" alt="image6" width="300" height="auto">
     </td>
   </tr>
 <tr>
     <td>
-      <img src="images/demo (7).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (7).gif" alt="image7" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (9).gif" alt="image8" width="300" height="auto">
     </td>
     <td>
-      <img src="images/demo (8).gif" alt="Golden Monkey" width="640" height="auto">
+      <img src="images/demo (8).gif" alt="image9" width="300" height="auto">
     </td>
 
 

@@ -25,8 +25,8 @@ class Visualizer:
         self.visualizer.set_dataset_meta(dataset_meta)
 
     def visualize(self, frame, frame_coordinates, id_bbox_colors, data_sample):
-        frame = vis_box(frame, frame_coordinates, id_bbox_colors, self.line_thickness, self.padding)
-        vis_img = visualize_frame(self.visualizer, frame, data_sample)
+        frame = visualize_frame(self.visualizer, frame, data_sample)
+        vis_img = vis_box(frame, frame_coordinates, id_bbox_colors, self.line_thickness, self.padding)
 
         return vis_img
 

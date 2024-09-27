@@ -79,8 +79,6 @@ def parser_args():
 
 def main():
     cfgs, args = parser_args()
-    # ViP = VideoProcessor(cfgs, args, trt=args.trt)
-    # ViP.process_video(show=args.show, save_vid=args.save_vid, show_fps=args.show_fps)
     ViP = VideoProcessor(cfgs, args, trt=args.trt, interval=args.interval)
     ViP.process_video(show=args.show, save_vid=args.save_vid, show_fps=args.show_fps)
 

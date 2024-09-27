@@ -123,16 +123,16 @@ val_evaluator = [
 
 test_dataloader = val_dataloader
 test_evaluator = val_evaluator
-pretrained = '../ztest_script/benchmark_weight/resnet50_8xb32_in1k_20210831-ea4938fc.pth'  # noqa
+
 model = dict(
     type='ImageToImageRetriever',
     image_encoder=[
         dict(
             type='ResNet',
             depth=50,
-            # init_cfg=None),
-            init_cfg=dict(
-                type='Pretrained', checkpoint=pretrained, prefix='backbone')),
+            init_cfg=None),
+            # init_cfg=dict(
+            #     type='Pretrained', checkpoint=pretrained, prefix='backbone')),
         dict(type='GlobalAveragePooling'),
     ],
     head=dict(

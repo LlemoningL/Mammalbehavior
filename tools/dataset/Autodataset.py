@@ -92,7 +92,7 @@ class AutoDataset:
 
         a = [torchvision.transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0),
              # torchvision.transforms.Grayscale(num_output_channels=1),
-             torchvision.transforms.GaussianBlur(kernel_size=23, sigma=(0.1, 2.0)),
+             torchvision.transforms.GaussianBlur(kernel_size=23, sigma=(0.5, 2.0)),
              # torchvision.transforms.RandomInvert(p=0.5),
              torchvision.transforms.RandomPosterize(4, p=1),
              # torchvision.transforms.RandomSolarize(400, p=0.5),
@@ -127,7 +127,10 @@ class AutoDataset:
                     shutil.copy(origin_img_name, new_img_name)
                     init_num2 = init_num + 1
                     for i, trans in enumerate(a):
-                        trans_im = trans(Image.fromarray(img))
+                        try:
+                            trans_im = trans(Image.fromarray(img))
+                        except:
+                            continue
                         trans_im = np.array(trans_im)
                         imageio.imwrite(f'{output}/{dir.stem}/{init_num2:012d}.jpg', trans_im)
                         init_num2 = init_num2 + 1
@@ -184,7 +187,10 @@ class AutoDataset:
                     # else:
                     #     trans_im = trans(Image.fromarray(img))
                     #     trans_im = np.array(trans_im)
-                    trans_im = trans(Image.fromarray(img))
+                    try:
+                        trans_im = trans(Image.fromarray(img))
+                    except:
+                        continue
                     trans_im = np.array(trans_im)
                     # imageio.imwrite(f'{output}/{p(dir).stem}/{init_num2:012d}.jpg', trans_im)
                     imageio.imwrite(output_p / 'images' / f'{init_num2:012d}.jpg', trans_im)
