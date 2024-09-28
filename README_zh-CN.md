@@ -296,7 +296,8 @@ python main.py Demo/configs/inference_cfg_brb.yaml Demo/videos/brb.mp4 Carnivora
 Liu Jia - ljlemoning@163.com
 
 申请数据集: </p> 
-[https://github.com/ljlemoning/Animal-Behavior-Dataset](https://github.com/ljlemoning/Animal-Behavior-Dataset)
+[访问此页面，并向郭教授发送邮件](http://biology.nwu.edu.cn/info/1567/6684.htm)
+
 
 
 

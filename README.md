@@ -302,7 +302,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 Liu Jia - ljlemoning@163.com
 
 Requires for framework dataset: </p> 
-[https://github.com/ljlemoning/Animal-Behavior-Dataset](https://github.com/ljlemoning/Animal-Behavior-Dataset)
+[check this webpage, and send Email to professor Guo](http://biology.nwu.edu.cn/info/1567/6684.htm)
 
 
 
