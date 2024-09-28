@@ -264,11 +264,22 @@ torch2trt 将 Pytorch 模型转为 tensorRT 文件。. 安装请查看
 ## 使用方法
 
 #### Demo
-点击 [此处](*待添加*) 下载演示配置文件和权重。
-```python
-
+点击 [此处](https://drive.google.com/file/d/1BtxQVM13vq1qSlbkWH7qYvTwOQkwC5Bm/view?usp=sharing) 下载演示配置文件和权重,
+下载完成后解压至`Demo`文件夹，可选择运行如下命令:
+<br />川金丝猴
+```sh
+python main.py Demo/configs/inference_cfg_gm.yaml Demo/videos/gm.mp4 Primates --interval 2 --show_fps --show --save_vid
+```
+老虎
+```sh
+python main.py Demo/configs/inference_cfg_ti.yaml Demo/videos/ti.mp4 Carnivora --interval 2 --show_fps --show --save_vid
+```
+棕熊
+```sh
+python main.py Demo/configs/inference_cfg_brb.yaml Demo/videos/brb.mp4 Carnivora --interval 2 --show_fps --show --save_vid
 ```
 
+运行完成后会在 `main.py` 同级目录生成 `VideoOutput` 里面包含结果，`--show`需要显示器展示实时推理画面，如无显示可取消该参数。
 <p align="right">(<a href="#readme-top">返回顶部</a>)</p>
 
 ## 许可

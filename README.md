@@ -269,13 +269,22 @@ torch2trt can convert pytorch model to tensorRT engine. Installation please refe
 ## Usage
 
 #### Demo
-Click [here](*待添加*) to download demo config and checkpoint files.
-
-```python
-
+Click [here](https://drive.google.com/file/d/1BtxQVM13vq1qSlbkWH7qYvTwOQkwC5Bm/view?usp=sharing) to download demo config and checkpoint files.
+Unzip the downloaded files into the `Demo` folder, and you may choose to run the following commands:
+<br />Sichuan snub-nosed monkey
+```sh
+python main.py Demo/configs/inference_cfg_gm.yaml Demo/videos/gm.mp4 Primates --interval 2 --show_fps --show --save_vid
 ```
-
-For more dataset preparation, training and inference tutorials, please refer to the [Tutorials.md](Tutorials.md)_
+Tiger
+```sh
+python main.py Demo/configs/inference_cfg_ti.yaml Demo/videos/ti.mp4 Carnivora --interval 2 --show_fps --show --save_vid
+```
+Borwn bear
+```sh
+python main.py Demo/configs/inference_cfg_brb.yaml Demo/videos/brb.mp4 Carnivora --interval 2 --show_fps --show --save_vid
+```
+After running, the results will be generated in the `VideoOutput` directory at the same level as `main.py`. The `--show`
+parameter requires a display to show the inference visuals; if there is no display, you can remove this parameter.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
