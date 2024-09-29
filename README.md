@@ -138,7 +138,7 @@ Create conda enviroment and set python version to 3.8.
 #### Step2. Install Pyroch following [official website](https://pytorch.org/get-started/locally/).
 Pytorch=1.8 and it's compatible CUDA version is recommended.
   ```sh
-  conda install pytorch torchvision -c pytorch
+  pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
   ```
 #### Step3. Clone the repo.
   ```sh
@@ -151,7 +151,7 @@ Pytorch=1.8 and it's compatible CUDA version is recommended.
   ```sh
   pip install -U openmim
   mim install mmengine
-  mim install mmcv "mmcv>=2.0.1"
+  mim install mmcv==2.0.1
   ```
 #### Step2. Install dependencies of MMAction2.
 Install
@@ -228,11 +228,21 @@ Exiting mmpretrain, enter ultralytics folder.
   pip install -e .  
   ```
 
+<br />
+The remaining necessary dependency packages.
+
+```sh
+cd ../../
+pip install -r requirements.txt
+```
+
 Verify the inference demo.
   ```sh
+  cd dependencies/ultralytics
   yolo predict model=yolov8n.pt source=../../images/zidane.jpg
   ```
 You will see a message on the terminal with the result of the inference.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

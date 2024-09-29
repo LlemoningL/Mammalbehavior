@@ -137,7 +137,7 @@
 #### 步骤2. 按照[Pytorch](https://pytorch.org/get-started/locally/)官网要求安装。
 推荐使用Pytorch=1.8和与其匹配的CUDA版本。
   ```sh
-  conda install pytorch torchvision -c pytorch
+  pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
   ```
 #### 步骤3. 克隆仓库.
   ```sh
@@ -150,7 +150,7 @@
   ```sh
   pip install -U openmim
   mim install mmengine
-  mim install mmcv "mmcv>=2.0.1"
+  mim install mmcv==2.0.1
   ```
 #### 步骤2. 安装 MMAction2 的依赖项。
 安装
@@ -227,8 +227,18 @@
   pip install -e .  
   ```
 
+
+<br />
+其余必要的依赖包。
+
+```sh
+cd ../../
+pip install -r requirements.txt
+```
+
 推理演示验证。
   ```sh
+  cd dependencies/ultralytics
   yolo predict model=yolov8n.pt source=../../images/zidane.jpg
   ```
 你将在终端中看到推理结果。

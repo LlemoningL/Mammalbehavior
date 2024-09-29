@@ -14,7 +14,6 @@ from mmaction.apis import inference_skeleton, init_recognizer
 from mmpose.datasets.datasets.utils import parse_pose_metainfo
 from mmpose.models.builder import build_pose_estimator
 from utils.util import split_xyxy, get_color, is_boxid, FaceidInferencer
-from utils.FACEID import FaceidInferencerTRT
 from utils.reid_encoder import ReIDEncoder
 from pathlib import Path
 from typing import List, Optional, Union
@@ -22,10 +21,16 @@ from mmengine.dataset import Compose, pseudo_collate
 from PIL import Image
 from mmpose.structures import PoseDataSample, merge_data_samples
 from mmpose.structures.bbox import bbox_xywh2xyxy
-from mmdeploy.utils import get_input_shape, load_config
-from mmdeploy.apis.utils import build_task_processor
 import warnings
-
+try:
+    from utils.FACEID import FaceidInferencerTRT
+except ImportError:
+    warnings.warn('torchtrt is now not available.')
+try:
+    from mmdeploy.utils import get_input_shape, load_config
+    from mmdeploy.apis.utils import build_task_processor
+except ImportError:
+    warnings.warn('mmdeploy is now not available.')
 
 class ModelHandler:
     def __init__(self, configs, frame_shape, behavior_label, DataManager, fps, logger):
