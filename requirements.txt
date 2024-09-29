@@ -1,0 +1,6 @@
+imageio
+overrides
+yacs
+dill
+lapx>=0.5.2
+imageio-ffmpeg
