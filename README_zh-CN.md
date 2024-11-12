@@ -29,7 +29,7 @@
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
 
   <p align="center">
-    Jia Liu†, Tao Liu†, Zhengfeng Hu, Fan Wu, Zi Wang, Qi Gao, Wenjie Guo, Paul A. Garber, Derek Dunn, Colin A. Chapman, Ruliang Pan4, Tongzuo Zhang, Yang Zhao, Felix Guo, Shuang Yin, Gang He, Pengfei Xu, Baoguo Li, Songtao Guo
+    Jia Liu†, Tao Liu†, Zhengfeng Hu, Fan Wu, Wenjie Guo, Haojie Wu, Zhan Wang, Yiyi Men, Shuang Yin, Paul A. Garber, Derek Dunn, Colin A. Chapman, Gang He, Felix Guo, Ruliang Pan, Tongzuo Zhang, Yang Zhao, Pengfei Xu, Baoguo Li, Songtao Guo
     <br />
     动物行为识别与定量测量的便捷框架! 
     </p>
@@ -137,7 +137,7 @@
 #### 步骤2. 按照[Pytorch](https://pytorch.org/get-started/locally/)官网要求安装。
 推荐使用Pytorch=1.8和与其匹配的CUDA版本。
   ```sh
-  pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+  conda install pytorch torchvision -c pytorch
   ```
 #### 步骤3. 克隆仓库.
   ```sh
@@ -150,7 +150,7 @@
   ```sh
   pip install -U openmim
   mim install mmengine
-  mim install mmcv==2.0.1
+  mim install mmcv "mmcv>=2.0.1"
   ```
 #### 步骤2. 安装 MMAction2 的依赖项。
 安装
@@ -227,18 +227,8 @@
   pip install -e .  
   ```
 
-
-<br />
-其余必要的依赖包。
-
-```sh
-cd ../../
-pip install -r requirements.txt
-```
-
 推理演示验证。
   ```sh
-  cd dependencies/ultralytics
   yolo predict model=yolov8n.pt source=../../images/zidane.jpg
   ```
 你将在终端中看到推理结果。
