@@ -26,7 +26,6 @@
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
 
   <p align="center">
-    Jia Liu†, Tao Liu†, Zhengfeng Hu, Fan Wu, Zi Wang, Qi Gao, Wenjie Guo, Paul A. Garber, Derek Dunn, Colin A. Chapman, Ruliang Pan4, Tongzuo Zhang, Yang Zhao, Felix Guo, Shuang Yin, Gang He, Pengfei Xu, Baoguo Li, Songtao Guo
     <br />
     动物行为识别与定量测量的便捷框架! 
     </p>

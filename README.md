@@ -29,7 +29,6 @@
   <h3 align="center">An Automated AI Framework for Quantitative Measurement of Mammalian Behavior</h3>
 
   <p align="center">
-    Jia Liu†, Tao Liu†, Zhengfeng Hu, Fan Wu, Wenjie Guo, Haojie Wu, Zhan Wang, Yiyi Men, Shuang Yin, Paul A. Garber, Derek Dunn, Colin A. Chapman, Gang He, Felix Guo, Ruliang Pan, Tongzuo Zhang, Yang Zhao, Pengfei Xu, Baoguo Li, Songtao Guo
     <br />
     An easy-to-use framework for animal behavior recognition and quantitative measurement! 
     </p>
@@ -279,7 +278,7 @@ Tiger
 ```sh
 python main.py Demo/configs/inference_cfg_ti.yaml Demo/videos/ti.mp4 Carnivora --interval 2 --show_fps --show --save_vid
 ```
-Borwn bear
+Brown bear
 ```sh
 python main.py Demo/configs/inference_cfg_brb.yaml Demo/videos/brb.mp4 Carnivora --interval 2 --show_fps --show --save_vid
 ```
