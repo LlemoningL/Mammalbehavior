@@ -55,6 +55,7 @@
     <li><a href="#使用方法">使用方法</a></li>
     <li><a href="#许可">许可</a></li>
     <li><a href="#联系方式">联系方式</a></li>
+    <li><a href="#引用">引用</a></li>
     <li><a href="#致谢">致谢</a></li>
   </ol>
 </details>
@@ -297,10 +298,21 @@ Liu Jia - ljlemoning@163.com
 申请数据集: </p> 
 [访问此页面，并向郭教授发送邮件](http://biology.nwu.edu.cn/info/1567/6684.htm)
 
-
-
-
 <p align="right">(<a href="#readme-top">返回顶部</a>)</p>
+
+## 引用
+如果您认为该仓库对您有所帮助，请引用我们的[论文](https://doi.org/10.1111/1749-4877.12985):
+
+```bibtex
+@article{liu2025automated,
+  title={An Automated AI Framework for Quantitative Measurement of Mammalian Behavior},
+  author={Liu, Jia and Liu, Tao and Hu, Zhengfeng and Wu, Fan and Guo, Wenjie and Wu, Haojie and Wang, Zhan and Men, Yiyi and Yin, Shuang and Garber, Paul A and others},
+  journal={Integrative Zoology},
+  year={2025},
+  publisher={Wiley Online Library}
+}
+```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 

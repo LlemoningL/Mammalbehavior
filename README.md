@@ -55,6 +55,7 @@ English | [简体中文](README_zh-CN.md)
     <li><a href="#usage">Usage</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
+    <li><a href="#citation">Citation</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
@@ -304,9 +305,21 @@ Requires for framework dataset: </p>
 [check this webpage, and send Email to professor Guo](http://biology.nwu.edu.cn/info/1567/6684.htm)
 
 
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Citation
+If you find this repository helpful, please cite our [paper](https://doi.org/10.1111/1749-4877.12985):
+
+```bibtex
+@article{liu2025automated,
+  title={An Automated AI Framework for Quantitative Measurement of Mammalian Behavior},
+  author={Liu, Jia and Liu, Tao and Hu, Zhengfeng and Wu, Fan and Guo, Wenjie and Wu, Haojie and Wang, Zhan and Men, Yiyi and Yin, Shuang and Garber, Paul A and others},
+  journal={Integrative Zoology},
+  year={2025},
+  publisher={Wiley Online Library}
+}
+```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- ACKNOWLEDGMENTS -->
