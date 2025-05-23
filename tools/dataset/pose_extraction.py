@@ -265,13 +265,12 @@ if __name__ == '__main__':
     pose_extr = PoseExtraction(det_mdoel,
                                pose_config,
                                pose_weight,
-                               target_type,
                                behavior_label,
                                output)
     # for single video
     video = 'path/to/video'
     specie = 'gsm'  # Golden Snub-nosed Monkey
-    pose_extr.extract(video, specie)
+    pose_extr.extract(video, specie, target_type)
     pose_extr.combine()
 
 '''    
@@ -281,6 +280,6 @@ if __name__ == '__main__':
     video_dir = Path('path/to/video/dir')
     specie = 'gsm'
     for i in video_dir.iterdir():
-        pose_extr.extract(str(i), specie)
+        pose_extr.extract(str(i), specie, target_type)
     pose_extr.combine()
 '''
