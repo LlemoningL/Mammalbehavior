@@ -259,7 +259,7 @@ if __name__ == '__main__':
     det_mdoel = 'path/to/detect_mdoel_weight'  # recommend using your trained YOLO model for body detection
     pose_config = 'path/to/pose_config'  # recommend using your pose estimate config
     pose_weight = 'path/to/pose_model_weight'  # recommend using your trained pose estiamte model
-    target_type = 'Primates'  # choose ont in ["Primates", "Artiodactyla", "Carnivora", "Perissodactyla"]
+    target_type = 'Primates'  # choose one in ["Primates", "Artiodactyla", "Carnivora", "Perissodactyla"]
     behavior_label = '../behavior_label.json'  # default behavior label file path
     output = None  # optional, can be None or specific directory path
     pose_extr = PoseExtraction(det_mdoel,
